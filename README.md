@@ -7,6 +7,6 @@ Reverse Proxy: NGINX
 Java Version: 7 Update 80  
 Java App Container: Tomcat 7  
 Build Tool: Apache-Maven 3.0.5  
-Version Contorl: GIT  
+Version Contorl: GIT 2.8.0
 
 
