@@ -11,10 +11,10 @@
     </appender>
 
     <appender name="emall" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <File>/Users/supercheng/Apps/Logs/emall/mmall.log</File>
+        <File>/Users/supercheng/Apps/Logs/emall/emall.log</File>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>/Users/supercheng/Apps/Logs/emall/mmall.log.%d{yyyy-MM-dd}.gz</fileNamePattern>
-            <append>true</append>
+            <fileNamePattern>/Users/supercheng/Apps/Logs/emall/emall.log.%d{yyyy-MM-dd}.gz</fileNamePattern>
+            <append>true</append>s
             <maxHistory>10</maxHistory>
         </rollingPolicy>
         <encoder>
