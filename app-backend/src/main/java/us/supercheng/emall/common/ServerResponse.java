@@ -5,13 +5,7 @@ import org.codehaus.jackson.map.annotate.JsonSerialize;
 @JsonSerialize(include =  JsonSerialize.Inclusion.NON_NULL)
 public class ServerResponse<T> {
     private int status;
-    private String msg;
     private T data;
-
-    private ServerResponse(int inStatus, String inMsg) {
-        this.status = inStatus;
-        this.msg = inMsg;
-    }
 
     private ServerResponse(int inStatus, T inData) {
         this.status = inStatus;
@@ -22,27 +16,23 @@ public class ServerResponse<T> {
         return this.status;
     }
 
-    public String getMsg() {
-        return this.msg;
-    }
-
     public T getData() {
         return this.data;
     }
 
-    public static <T> ServerResponse<T> createServerResponse(int inStatus, String inMsg) {
-        return new ServerResponse<T>(inStatus, inMsg);
+    public static <T> ServerResponse<T> createServerResponse(int inStatus, String inData) {
+        return new ServerResponse(inStatus, inData);
     }
 
     public static <T> ServerResponse<T> createServerResponse(int inStatus, T inData) {
-        return new ServerResponse<T>(inStatus, inData);
+        return new ServerResponse(inStatus, inData);
     }
 
     public static <T> ServerResponse<T> createServerResponseSuccess(T inDataOrMsg) {
         return createServerResponse(ResponseCode.SUCCESS.getCode(), inDataOrMsg);
     }
 
-    public static <T> ServerResponse<T> createServerResponseError(String inMsg) {
-        return ServerResponse.createServerResponse(ResponseCode.ERROR.getCode(), inMsg);
+    public static <T> ServerResponse<T> createServerResponseError(String inData) {
+        return ServerResponse.createServerResponse(ResponseCode.ERROR.getCode(), inData);
     }
 }
