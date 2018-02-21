@@ -66,6 +66,4 @@ public class UserController {
     public ServerResponse<String> getForgetQuestion(String username) {
         return this.iUserService.getUserQuestion(username);
     }
-
-
 }
