@@ -61,9 +61,15 @@ public class UserController {
         return ServerResponse.createServerResponseSuccess(user);
     }
 
-    @RequestMapping(value = "forget_get_question", method = RequestMethod.POST)
+    @RequestMapping(value = "forget_get_question.do", method = RequestMethod.POST)
     @ResponseBody
-    public ServerResponse<String> getForgetQuestion(String username) {
+    public ServerResponse<String> forgetGetQuestion(String username) {
         return this.iUserService.getUserQuestion(username);
+    }
+
+    @RequestMapping(value = "forget_check_answer.do", method = RequestMethod.POST)
+    @ResponseBody
+    public ServerResponse<String> forgetCheckAnswer(String username, String question, String answer) {
+         return this.iUserService.checkQuestionAnswer(username, question, answer);
     }
 }

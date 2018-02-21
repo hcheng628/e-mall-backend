@@ -11,6 +11,8 @@ import us.supercheng.emall.pojo.User;
 import us.supercheng.emall.service.IUserService;
 import us.supercheng.emall.util.MD5Helper;
 
+import java.util.UUID;
+
 @Service("iUserService")
 public class UserServiceImpl implements IUserService{
 
@@ -77,4 +79,19 @@ public class UserServiceImpl implements IUserService{
         }
         return ServerResponse.createServerResponseError("No Such Username: " + username + " Found");
     }
+
+    @Override
+    public ServerResponse<String> checkQuestionAnswer(String username, String question, String answer) {
+        int resultCount = this.userMapper.checkUsername(username);
+        if (resultCount > 0) {
+            resultCount = this.userMapper.checkUserAnswer(username, question, answer);
+            if (resultCount > 0) {
+                return ServerResponse.createServerResponseSuccess(UUID.randomUUID().toString().toUpperCase());
+            }
+            return ServerResponse.createServerResponseError("Incorrect Answer: " + answer + " for " + question);
+        }
+        return ServerResponse.createServerResponseError("No Such Username: " + username + " Found");
+    }
+
+
 }

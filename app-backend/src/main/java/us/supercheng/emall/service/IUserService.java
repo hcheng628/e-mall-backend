@@ -11,4 +11,6 @@ public interface IUserService {
     ServerResponse<String> register(User inUser);
 
     ServerResponse<String> getUserQuestion(String username);
+
+    ServerResponse<String> checkQuestionAnswer(String username, String question, String answer);
 }
