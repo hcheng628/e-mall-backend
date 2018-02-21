@@ -1,5 +1,6 @@
 package us.supercheng.emall.dao;
 
+import org.apache.ibatis.annotations.Param;
 import us.supercheng.emall.pojo.User;
 
 public interface UserMapper {
@@ -14,4 +15,12 @@ public interface UserMapper {
     int updateByPrimaryKeySelective(User record);
 
     int updateByPrimaryKey(User record);
+
+    int checkUsername(String username);
+
+    int checkEmail(String email);
+
+    User selectLogin(@Param("username") String username, @Param("password") String password);
+
+    String selectUserQuestion(String username);
 }
