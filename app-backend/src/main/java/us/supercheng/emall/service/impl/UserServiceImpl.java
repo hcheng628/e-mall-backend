@@ -69,5 +69,12 @@ public class UserServiceImpl implements IUserService{
         return ServerResponse.createServerResponse(ResponseCode.ERROR.getCode(), "Account Register Fail");
     }
 
-
+    @Override
+    public ServerResponse<String> getUserQuestion(String username) {
+        int resultCount = this.userMapper.checkUsername(username);
+        if (resultCount > 0) {
+            return ServerResponse.createServerResponseSuccess(this.userMapper.selectUserQuestion(username));
+        }
+        return ServerResponse.createServerResponseError("No Such Username: " + username + " Found");
+    }
 }

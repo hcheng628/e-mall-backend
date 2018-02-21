@@ -50,4 +50,20 @@ public class UserController {
         }
         return ServerResponse.createServerResponseSuccess("Logout Success");
     }
+
+    @RequestMapping(value = "get_user_info.do", method = RequestMethod.POST)
+    @ResponseBody
+    public ServerResponse<User> getUserInfo(HttpSession session) {
+        User user = (User) session.getAttribute(Const.CURRENT_USER);
+        if (user == null) {
+            return ServerResponse.createServerResponseError("No Login User Found");
+        }
+        return ServerResponse.createServerResponseSuccess(user);
+    }
+
+    @RequestMapping(value = "forget_get_question", method = RequestMethod.POST)
+    @ResponseBody
+    public ServerResponse<String> forgetGetQuestion(String username) {
+        return this.iUserService.getUserQuestion(username);
+    }
 }

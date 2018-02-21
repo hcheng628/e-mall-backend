@@ -172,6 +172,11 @@
     password = #{password}
   </select>
 
-
+  <select id="selectUserQuestion" parameterType="string" resultType="string">
+    select question
+    from mmall_user
+    where
+    username = #{username}
+  </select>
 
 </mapper>

@@ -41,4 +41,8 @@ public class ServerResponse<T> {
     public static <T> ServerResponse<T> createServerResponseSuccess(T inDataOrMsg) {
         return createServerResponse(ResponseCode.SUCCESS.getCode(), inDataOrMsg);
     }
+
+    public static <T> ServerResponse<T> createServerResponseError(String inMsg) {
+        return ServerResponse.createServerResponse(ResponseCode.ERROR.getCode(), inMsg);
+    }
 }
