@@ -190,4 +190,11 @@
     answer = #{answer}
   </select>
 
+  <update id="updatePasswordByUsername" parameterType="map">
+    update mmall_user
+    set password = #{password}
+    where
+    username = #{username}
+  </update>
+
 </mapper>
