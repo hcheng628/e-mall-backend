@@ -11,4 +11,12 @@ public interface IUserService {
     ServerResponse<String> register(User inUser);
 
     ServerResponse<String> getUserQuestion(String username);
+
+    ServerResponse<String> checkQuestionAnswer(String username, String question, String answer);
+
+    ServerResponse<String> resetPassword(String username, String passwordNew, String forgetToken);
+
+    ServerResponse<String> resetPassword(Integer id, String newPassword);
+
+    ServerResponse<User> updateInfo(Integer id, String email, String phone, String question,String answer);
 }

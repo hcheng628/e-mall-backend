@@ -2,6 +2,7 @@ package us.supercheng.emall.controller.portal;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -54,16 +55,52 @@ public class UserController {
     @RequestMapping(value = "get_user_info.do", method = RequestMethod.POST)
     @ResponseBody
     public ServerResponse<User> getUserInfo(HttpSession session) {
-        User user = (User) session.getAttribute(Const.CURRENT_USER);
+        User user = this.getCurrentUser(session);
         if (user == null) {
             return ServerResponse.createServerResponseError("No Login User Found");
         }
         return ServerResponse.createServerResponseSuccess(user);
     }
 
-    @RequestMapping(value = "forget_get_question", method = RequestMethod.POST)
+    @RequestMapping(value = "forget_get_question.do", method = RequestMethod.POST)
     @ResponseBody
-    public ServerResponse<String> getForgetQuestion(String username) {
+    public ServerResponse<String> forgetGetQuestion(String username) {
         return this.iUserService.getUserQuestion(username);
+    }
+
+    @RequestMapping(value = "forget_check_answer.do", method = RequestMethod.POST)
+    @ResponseBody
+    public ServerResponse<String> forgetCheckAnswer(String username, String question, String answer) {
+         return this.iUserService.checkQuestionAnswer(username, question, answer);
+    }
+
+    @RequestMapping(value = "forget_reset_password.do", method = RequestMethod.POST)
+    @ResponseBody
+    public ServerResponse<String> forgetResetPassword(String username, String newPassword, String token) {
+        return this.iUserService.resetPassword(username, newPassword, token);
+    }
+
+    @RequestMapping(value = "reset_password.do", method = RequestMethod.POST)
+    @ResponseBody
+    public ServerResponse<String> resetPassword(String newPassword, HttpSession session) {
+        User user = this.getCurrentUser(session);
+        if (user != null) {
+            return this.iUserService.resetPassword(user.getId(), newPassword);
+        }
+        return ServerResponse.createServerResponseError("Login Required");
+    }
+
+    @RequestMapping(value = "update_information.do", method = RequestMethod.POST)
+    @ResponseBody
+    public ServerResponse<User> updateInfo(String email, String phone, String question, String answer, HttpSession session) {
+        User user = getCurrentUser(session);
+        if (user != null) {
+            return this.iUserService.updateInfo(user.getId(), email, phone, question, answer);
+        }
+        return ServerResponse.createServerResponseError("Login Required");
+    }
+
+    private User getCurrentUser(HttpSession session) {
+        return (User) session.getAttribute(Const.CURRENT_USER);
     }
 }
