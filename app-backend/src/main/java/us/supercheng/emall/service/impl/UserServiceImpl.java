@@ -23,15 +23,15 @@ public class UserServiceImpl implements IUserService{
     public ServerResponse<User> login(String username, String password) {
         int resultCount = this.userMapper.checkUsername(username);
         if (resultCount > 0) {
-            User user = this.userMapper.selectLogin(username, MD5Helper.MD5Encode(password, Const.DEFAULT_ENCODING));
+            User user = this.userMapper.selectLogin(username, this.saltAndMD5Passwd(password));
             if (user == null) {
-                return ServerResponse.createServerResponse(ResponseCode.ERROR.getCode(), "Password Not Match");
+                return ServerResponse.createServerResponseError("Password Not Match");
             } else {
                 user.setPassword(StringUtils.EMPTY);
                 return ServerResponse.createServerResponseSuccess(user);
             }
         }
-        return ServerResponse.createServerResponse(ResponseCode.ERROR.getCode(), "No Such Username");
+        return ServerResponse.createServerResponseError("No Such Username");
     }
 
     @Override
@@ -42,12 +42,11 @@ public class UserServiceImpl implements IUserService{
         } else if (StringUtils.equals(acctType, Const.E_MAIL)) {
             resultCount = this.userMapper.checkEmail(inText);
         } else {
-            return ServerResponse.createServerResponse(ResponseCode.ERROR.getCode(),
-                    "Invalid Account Type: " + acctType);
+            return ServerResponse.createServerResponseError("Invalid Account Type: " + acctType);
         }
         if (resultCount > 0) {
-            return ServerResponse.createServerResponse(ResponseCode.ERROR.getCode(),
-                    acctType + ": " + inText + " Already Exist Please Try with a Different One");
+            return ServerResponse.createServerResponseError(acctType + ": " + inText
+                    + " Already Exist Please Try with a Different One");
         } else {
             return ServerResponse.createServerResponse(ResponseCode.SUCCESS.getCode(),
                     "Valid " + acctType + ": " + inText);
@@ -57,18 +56,19 @@ public class UserServiceImpl implements IUserService{
     @Override
     public ServerResponse<String> register(User inUser) {
         if (this.userMapper.checkUsername(inUser.getUsername()) > 0) {
-            return ServerResponse.createServerResponse(ResponseCode.ERROR.getCode(),
-                    "Username: " + inUser.getUsername() + " Already Exist Please Try with a Different One");        }
-        if (this.userMapper.checkEmail(inUser.getEmail()) > 0) {
-            return ServerResponse.createServerResponse(ResponseCode.ERROR.getCode(),
-                    "E-mail: " + inUser.getEmail() + " Already Exist Please Try with a Different One");
+            return ServerResponse.createServerResponseError("Username: " + inUser.getUsername()
+                    + " Already Exist Please Try with a Different One");
         }
-        inUser.setPassword(MD5Helper.MD5Encode(inUser.getPassword(), Const.DEFAULT_ENCODING));
+        if (this.userMapper.checkEmail(inUser.getEmail()) > 0) {
+            return ServerResponse.createServerResponseError("E-mail: " + inUser.getEmail() +
+                    " Already Exist Please Try with a Different One");
+        }
+        inUser.setPassword(this.saltAndMD5Passwd(inUser.getPassword()));
         inUser.setRole(Const.ROLE_CUSTOMER);
         if (this.userMapper.insert(inUser) > 0) {
             return ServerResponse.createServerResponseSuccess("Account Register Success");
         }
-        return ServerResponse.createServerResponse(ResponseCode.ERROR.getCode(), "Account Register Fail");
+        return ServerResponse.createServerResponseError("Account Register Fail");
     }
 
     @Override
@@ -99,7 +99,7 @@ public class UserServiceImpl implements IUserService{
     public ServerResponse<String> resetPassword(String username, String passwordNew, String forgetToken) {
         if(this.userMapper.checkUsername(username) > 0) {
             if (StringUtils.equals(AppCache.readForgetQuestionAnswerCache(username), forgetToken)) {
-                this.userMapper.updatePasswordByUsername(username, MD5Helper.MD5Encode(passwordNew, Const.DEFAULT_ENCODING));
+                this.userMapper.updatePasswordByUsername(username, this.saltAndMD5Passwd(passwordNew));
                 return ServerResponse.createServerResponseSuccess("Reset Password Success");
             }
             return ServerResponse.createServerResponseError("Invalid Reset Password Token");
@@ -111,7 +111,7 @@ public class UserServiceImpl implements IUserService{
     public ServerResponse<String> resetPassword(Integer id, String newPassword) {
         User user = new User();
         user.setId(id);
-        user.setPassword(MD5Helper.MD5Encode(newPassword, Const.DEFAULT_ENCODING));
+        user.setPassword(this.saltAndMD5Passwd(newPassword));
         this.userMapper.updateByPrimaryKeySelective(user);
         return ServerResponse.createServerResponseSuccess("Reset Password Success");
     }
@@ -126,5 +126,10 @@ public class UserServiceImpl implements IUserService{
         user.setAnswer(answer);
         this.userMapper.updateByPrimaryKeySelective(user);
         return ServerResponse.createServerResponseSuccess(user);
+    }
+
+    private String saltAndMD5Passwd(String passwd) {
+        return MD5Helper.MD5Encode(Const.SALT_PASSWD_PREFIX + passwd + Const.SALT_PASSWD_SUFFIX,
+                Const.DEFAULT_ENCODING);
     }
 }
