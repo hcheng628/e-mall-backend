@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import us.supercheng.emall.common.Const;
+import us.supercheng.emall.common.ResponseCode;
 import us.supercheng.emall.common.ServerResponse;
 import us.supercheng.emall.pojo.User;
 import us.supercheng.emall.service.IUserService;
@@ -22,10 +23,12 @@ public class AdminController {
     @ResponseBody
     public ServerResponse<User> login(String username, String password, HttpSession session) {
         ServerResponse<User> serverResponseUser = this.iUserService.login(username, password);
-        if (serverResponseUser.getData().getRole() == Const.ROLE_ADMIN) {
-            session.setAttribute(Const.CURRENT_USER, serverResponseUser.getData());
-        } else {
-            return ServerResponse.createServerResponseError("Username: " + username + " is not an Admin User");
+        if (serverResponseUser.getStatus() == ResponseCode.SUCCESS.getCode()) {
+            if (serverResponseUser.getData().getRole() == Const.ROLE_ADMIN) {
+                session.setAttribute(Const.CURRENT_USER, serverResponseUser.getData());
+            } else {
+                return ServerResponse.createServerResponseError("Username: " + username + " is not an Admin User");
+            }
         }
         return serverResponseUser;
     }
