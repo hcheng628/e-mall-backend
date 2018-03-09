@@ -54,7 +54,7 @@ public class UserController {
     @RequestMapping(value = "get_user_info.do", method = RequestMethod.POST)
     @ResponseBody
     public ServerResponse<User> getUserInfo(HttpSession session) {
-        User user = this.getCurrentUser(session);
+        User user = this.iUserService.getCurrentUser(session);
         if (user == null) {
             return ServerResponse.createServerResponseError("No Login User Found");
         }
@@ -82,7 +82,7 @@ public class UserController {
     @RequestMapping(value = "reset_password.do", method = RequestMethod.POST)
     @ResponseBody
     public ServerResponse<String> resetPassword(String newPassword, HttpSession session) {
-        User user = this.getCurrentUser(session);
+        User user = this.iUserService.getCurrentUser(session);
         if (user != null) {
             return this.iUserService.resetPassword(user.getId(), newPassword);
         }
@@ -92,14 +92,10 @@ public class UserController {
     @RequestMapping(value = "update_information.do", method = RequestMethod.POST)
     @ResponseBody
     public ServerResponse<User> updateInfo(String email, String phone, String question, String answer, HttpSession session) {
-        User user = getCurrentUser(session);
+        User user = iUserService.getCurrentUser(session);
         if (user != null) {
             return this.iUserService.updateInfo(user.getId(), email, phone, question, answer);
         }
         return ServerResponse.createServerResponseError("Login Required");
-    }
-
-    private User getCurrentUser(HttpSession session) {
-        return (User) session.getAttribute(Const.CURRENT_USER);
     }
 }
