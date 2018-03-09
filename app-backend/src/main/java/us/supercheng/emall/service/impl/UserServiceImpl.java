@@ -11,6 +11,8 @@ import us.supercheng.emall.dao.UserMapper;
 import us.supercheng.emall.pojo.User;
 import us.supercheng.emall.service.IUserService;
 import us.supercheng.emall.util.MD5Helper;
+
+import javax.servlet.http.HttpSession;
 import java.util.UUID;
 
 @Service("iUserService")
@@ -132,4 +134,9 @@ public class UserServiceImpl implements IUserService{
         return MD5Helper.MD5Encode(Const.SALT_PASSWD_PREFIX + passwd + Const.SALT_PASSWD_SUFFIX,
                 Const.DEFAULT_ENCODING);
     }
+
+    public User getCurrentUser(HttpSession session) {
+        return (User) session.getAttribute(Const.CURRENT_USER);
+    }
+
 }

@@ -20,4 +20,17 @@ public class CategoryServiceImpl implements ICategoryService {
         List<Category> categoryList =  this.categoryMapper.getCategoriesByParentId(parentId);
         return ServerResponse.createServerResponseSuccess(categoryList);
     }
+
+    @Override
+    public ServerResponse<String> addCategory(Integer parentId, String categoryName) {
+        Category category = new Category();
+        category.setStatus(true);
+        category.setParentId(parentId);
+        category.setName(categoryName);
+        int count = this.categoryMapper.insertSelective(category);
+        if (count > 0) {
+            return ServerResponse.createServerResponseSuccess("Add Category Success");
+        }
+        return ServerResponse.createServerResponseError("Add Category Failed");
+    }
 }

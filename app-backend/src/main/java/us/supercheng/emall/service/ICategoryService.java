@@ -6,5 +6,6 @@ import java.util.List;
 
 public interface ICategoryService {
 
-    public ServerResponse<List<Category>> getCategoriesByParentId(int parentId);
+    ServerResponse<List<Category>> getCategoriesByParentId(int parentId);
+    ServerResponse<String> addCategory(Integer parentId, String categoryName);
 }
