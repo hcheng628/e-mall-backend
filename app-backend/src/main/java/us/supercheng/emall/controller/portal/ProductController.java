@@ -9,13 +9,6 @@ import us.supercheng.emall.pojo.Product;
 @RequestMapping(value = "/product")
 public class ProductController {
 
-    /*
-    categoryId
-    keyword
-    pageNum(default=1)
-    pageSize(default=10)
-    orderBy(default="")：排序参数：例如price_desc，price_asc
-     */
     @RequestMapping(value = "list.do", method = RequestMethod.POST)
     @ResponseBody
     public ServerResponse<Product> list(String categoryId, String keyword,

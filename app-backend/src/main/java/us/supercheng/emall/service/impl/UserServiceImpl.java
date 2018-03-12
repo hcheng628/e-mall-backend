@@ -16,7 +16,7 @@ import javax.servlet.http.HttpSession;
 import java.util.UUID;
 
 @Service("iUserService")
-public class UserServiceImpl implements IUserService{
+public class UserServiceImpl implements IUserService {
 
     @Autowired
     private UserMapper userMapper;
@@ -99,10 +99,13 @@ public class UserServiceImpl implements IUserService{
 
     @Override
     public ServerResponse<String> resetPassword(String username, String passwordNew, String forgetToken) {
-        if(this.userMapper.checkUsername(username) > 0) {
+        if (this.userMapper.checkUsername(username) > 0) {
             if (StringUtils.equals(AppCache.readForgetQuestionAnswerCache(username), forgetToken)) {
-                this.userMapper.updatePasswordByUsername(username, this.saltAndMD5Passwd(passwordNew));
-                return ServerResponse.createServerResponseSuccess("Reset Password Success");
+                int count = this.userMapper.updatePasswordByUsername(username, this.saltAndMD5Passwd(passwordNew));
+                if (count > 0) {
+                    return ServerResponse.createServerResponseSuccess("Reset Password Success");
+                }
+                return ServerResponse.createServerResponseError("Reset Password Failed");
             }
             return ServerResponse.createServerResponseError("Invalid Reset Password Token");
         }
@@ -114,8 +117,11 @@ public class UserServiceImpl implements IUserService{
         User user = new User();
         user.setId(id);
         user.setPassword(this.saltAndMD5Passwd(newPassword));
-        this.userMapper.updateByPrimaryKeySelective(user);
-        return ServerResponse.createServerResponseSuccess("Reset Password Success");
+        int count = this.userMapper.updateByPrimaryKeySelective(user);
+        if (count > 0) {
+            return ServerResponse.createServerResponseSuccess("Reset Password Success");
+        }
+        return ServerResponse.createServerResponseError("Reset Password Failed");
     }
 
     @Override
@@ -126,8 +132,11 @@ public class UserServiceImpl implements IUserService{
         user.setPhone(phone);
         user.setQuestion(question);
         user.setAnswer(answer);
-        this.userMapper.updateByPrimaryKeySelective(user);
-        return ServerResponse.createServerResponseSuccess(user);
+        int count = this.userMapper.updateByPrimaryKeySelective(user);
+        if (count > 0) {
+            return ServerResponse.createServerResponseSuccess(user);
+        }
+        return ServerResponse.createServerResponseError("Update User Info Failed");
     }
 
     private String saltAndMD5Passwd(String passwd) {
@@ -139,4 +148,14 @@ public class UserServiceImpl implements IUserService{
         return (User) session.getAttribute(Const.CURRENT_USER);
     }
 
+    @Override
+    public ServerResponse checkAdminUser(User user) {
+        if (user == null) {
+            return ServerResponse.createServerResponse(ResponseCode.LOGIN_REQUIRED.getCode(), ResponseCode.LOGIN_REQUIRED.getDesc());
+        }
+        if (user.getRole() != Const.ROLE_ADMIN) {
+            return ServerResponse.createServerResponseError("Username: " + user.getUsername() + " is not an Admin User");
+        }
+        return ServerResponse.createServerResponseSuccess("Username: " + user.getUsername() + " is an Admin");
+    }
 }

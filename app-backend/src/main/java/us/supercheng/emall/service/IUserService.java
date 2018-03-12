@@ -23,4 +23,6 @@ public interface IUserService {
     ServerResponse<User> updateInfo(Integer id, String email, String phone, String question,String answer);
 
     User getCurrentUser(HttpSession session);
+
+    ServerResponse checkAdminUser(User user);
 }
