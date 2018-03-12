@@ -69,6 +69,33 @@ public class ProductServiceImpl implements IProductService {
         return ServerResponse.createServerResponseError("Error Update Product");
     }
 
+    @Override
+    public ServerResponse update(Product product) {
+        int count = this.productMapper.updateByPrimaryKeySelective(product);
+        if (count > 0) {
+            return ServerResponse.createServerResponseSuccess("Update Product Success");
+        }
+        return ServerResponse.createServerResponseError("Update Product Failed");
+    }
+
+    @Override
+    public ServerResponse insert(Product product) {
+        int count = this.productMapper.insert(product);
+        if (count > 0) {
+            return ServerResponse.createServerResponseSuccess("Insert Product Success");
+        }
+        return ServerResponse.createServerResponseError("Insert Product Failed");
+    }
+
+    @Override
+    public ServerResponse upsert(Product product) {
+        Product p = this.productMapper.selectByPrimaryKey(product.getId());
+        if (p != null) {
+            return this.update(product);
+        }
+        return this.insert(product);
+
+    }
 
     private ProductListManageVo convertToProductListManageVo(Product product) {
         ProductListManageVo productListManageVo = new ProductListManageVo();
