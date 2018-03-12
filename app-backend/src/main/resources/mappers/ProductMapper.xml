@@ -191,4 +191,21 @@
       </if>
     </where>
   </select>
+
+  <select id="findProductsByKeywordsOrCategoryId" resultMap="BaseResultMap" parameterType="map">
+    SELECT
+    <include refid="Base_Column_List" />
+    from mmall_product
+    <where>
+      <if test="keywords != null" >
+        and name like #{keywords}
+      </if>
+      <if test="categoryId != null" >
+        and category_id = #{categoryId}
+      </if>
+    </where>
+    <if test="orderBy != null">
+      order by ${orderBy}
+    </if>
+  </select>
 </mapper>

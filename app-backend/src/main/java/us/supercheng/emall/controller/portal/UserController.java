@@ -10,6 +10,7 @@ import us.supercheng.emall.common.ResponseCode;
 import us.supercheng.emall.common.ServerResponse;
 import us.supercheng.emall.pojo.User;
 import us.supercheng.emall.service.IUserService;
+
 import javax.servlet.http.HttpSession;
 
 @Controller
@@ -19,10 +20,10 @@ public class UserController {
     @Autowired
     private IUserService iUserService;
 
-    @RequestMapping(value = "login.do", method=RequestMethod.POST)
+    @RequestMapping(value = "login.do", method = RequestMethod.POST)
     @ResponseBody
     public ServerResponse<User> login(String username, String password, HttpSession session) {
-        ServerResponse<User> user =  this.iUserService.login(username, password);
+        ServerResponse<User> user = this.iUserService.login(username, password);
         if (user.getStatus() == ResponseCode.SUCCESS.getCode()) {
             session.setAttribute(Const.CURRENT_USER, user.getData());
             return user;
@@ -30,19 +31,19 @@ public class UserController {
         return user;
     }
 
-    @RequestMapping(value = "check_valid.do", method=RequestMethod.POST)
+    @RequestMapping(value = "check_valid.do", method = RequestMethod.POST)
     @ResponseBody
     public ServerResponse<String> check_valid(String inText, String acctType) {
         return this.iUserService.check_valid(inText, acctType);
     }
 
-    @RequestMapping(value = "register.do", method=RequestMethod.POST)
+    @RequestMapping(value = "register.do", method = RequestMethod.POST)
     @ResponseBody
     public ServerResponse<String> register(User newUser) {
         return this.iUserService.register(newUser);
     }
 
-    @RequestMapping(value = "logout.do", method=RequestMethod.POST)
+    @RequestMapping(value = "logout.do", method = RequestMethod.POST)
     @ResponseBody
     public ServerResponse<String> logout(HttpSession session) {
         if (session.getAttribute(Const.CURRENT_USER) != null) {
@@ -70,7 +71,7 @@ public class UserController {
     @RequestMapping(value = "forget_check_answer.do", method = RequestMethod.POST)
     @ResponseBody
     public ServerResponse<String> forgetCheckAnswer(String username, String question, String answer) {
-         return this.iUserService.checkQuestionAnswer(username, question, answer);
+        return this.iUserService.checkQuestionAnswer(username, question, answer);
     }
 
     @RequestMapping(value = "forget_reset_password.do", method = RequestMethod.POST)

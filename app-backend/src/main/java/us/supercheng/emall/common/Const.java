@@ -25,6 +25,10 @@ public class Const {
         String ENCODING = Const.APP_DEFAULT_ENCODING;
     }
 
+    public interface ProductConst {
+        int PRODUCT_STATUS_1 = 1;
+    }
+
     /* */
     @Value("${ftp.server.ip}")
     public static String FTP_IP;
