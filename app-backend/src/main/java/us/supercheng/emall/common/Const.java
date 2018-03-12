@@ -4,7 +4,8 @@ import org.springframework.beans.factory.annotation.Value;
 
 public class Const {
     public static final String APP_PROP_FILE = "emall.properties";
-    public static final String DEFAULT_ENCODING = "UTF-8";
+    public static final String APP_DEFAULT_ENCODING = "UTF-8";
+    public static final String APP_DATETIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
 
     public static final String USERNAME = "USERNAME";
     public static final String E_MAIL = "EMAIL";
@@ -21,10 +22,10 @@ public class Const {
 
     public interface FTPConst {
         int BUFFER_SIZE = 1024;
-        String ENCODING = Const.DEFAULT_ENCODING;
+        String ENCODING = Const.APP_DEFAULT_ENCODING;
     }
 
-    /*
+    /* */
     @Value("${ftp.server.ip}")
     public static String FTP_IP;
     @Value("${ftp.server.port}")
@@ -36,5 +37,5 @@ public class Const {
     public static String FTP_PASS;
     @Value("${ftp.server.http.prefix}")
     public static String FTP_HTTP_PREFIX;
-    */
+
 }

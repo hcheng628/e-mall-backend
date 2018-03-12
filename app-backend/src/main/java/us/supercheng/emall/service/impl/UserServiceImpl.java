@@ -141,7 +141,7 @@ public class UserServiceImpl implements IUserService {
 
     private String saltAndMD5Passwd(String passwd) {
         return MD5Helper.MD5Encode(Const.SALT_PASSWD_PREFIX + passwd + Const.SALT_PASSWD_SUFFIX,
-                Const.DEFAULT_ENCODING);
+                Const.APP_DATETIME_FORMAT);
     }
 
     public User getCurrentUser(HttpSession session) {
