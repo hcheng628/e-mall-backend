@@ -57,7 +57,7 @@ public class UserController {
     public ServerResponse<User> getUserInfo(HttpSession session) {
         User user = this.iUserService.getCurrentUser(session);
         if (user == null) {
-            return ServerResponse.createServerResponseError("No Login User Found");
+            return ServerResponse.createServerResponse(ResponseCode.LOGIN_REQUIRED.getCode(), ResponseCode.LOGIN_REQUIRED.getDesc());
         }
         return ServerResponse.createServerResponseSuccess(user);
     }

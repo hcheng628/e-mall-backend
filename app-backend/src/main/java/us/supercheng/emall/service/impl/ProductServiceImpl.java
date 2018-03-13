@@ -100,16 +100,15 @@ public class ProductServiceImpl implements IProductService {
     @Override
     public PageInfo findProductsByKeywordsOrCategoryId(Integer pageNum, Integer pageSize, String keywords, Integer categoryId,
                                                        String orderBy) {
+        PageHelper.startPage(pageNum, pageSize);
         if (StringUtils.isNotBlank(keywords)) {
             keywords = "%" + keywords + "%";
         }
         if (StringUtils.isNotBlank(orderBy)) {
             orderBy = orderBy.replace('_', ' '); // Process Order By
-        } else {
-            orderBy = null;
+            PageHelper.orderBy(orderBy);
         }
         System.out.println("findProductsByKeywordsOrCategoryId >>>>>>>>>> OrderBy: " + orderBy);
-        PageHelper.startPage(pageNum, pageSize);
         List<Product> products = this.productMapper.findProductsByKeywordsOrCategoryId(keywords, categoryId, orderBy);
         List<ProductListManageVo> productListManageVos = new ArrayList<>();
         PageInfo pageInfo = new PageInfo(products);

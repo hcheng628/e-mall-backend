@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import us.supercheng.emall.common.Const;
+import us.supercheng.emall.common.ResponseCode;
 import us.supercheng.emall.common.ServerResponse;
 import us.supercheng.emall.pojo.Product;
 import us.supercheng.emall.pojo.User;
@@ -34,8 +35,7 @@ public class ProductController {
             PageInfo pageInfo = this.iProductService.findProductsByKeywordsOrCategoryId(pageNum, pageSize, keyword, categoryId, orderBy);
             return ServerResponse.createServerResponseSuccess(pageInfo);
         }
-        return ServerResponse.createServerResponseError("No Login User Found");
-
+        return ServerResponse.createServerResponse(ResponseCode.LOGIN_REQUIRED.getCode(), ResponseCode.LOGIN_REQUIRED.getDesc());
     }
 
     @RequestMapping("detail.do")
@@ -54,6 +54,6 @@ public class ProductController {
                 return ServerResponse.createServerResponseError("No Such ProductID: " + productId);
             }
         }
-        return ServerResponse.createServerResponseError("No Login User Found");
+        return ServerResponse.createServerResponse(ResponseCode.LOGIN_REQUIRED.getCode(), ResponseCode.LOGIN_REQUIRED.getDesc());
     }
 }
