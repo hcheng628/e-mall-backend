@@ -121,4 +121,19 @@
     WHERE user_id = #{userId}
   </select>
 
+  <select id="selectByProductIdAndUserId" resultMap="BaseResultMap" parameterType="map">
+    SELECT
+    <include refid="Base_Column_List" />
+    from mmall_cart
+    WHERE
+    product_id = #{productId}
+    and
+    user_id = #{userId}
+  </select>
+
+  <delete id="deleteCartsByProductIds" parameterType="java.lang.String" >
+    delete from mmall_cart
+    where product_id in ( ${productIds} )
+  </delete>
+
 </mapper>

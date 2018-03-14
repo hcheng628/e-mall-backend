@@ -46,7 +46,7 @@ public class CartServiceImpl implements ICartService {
     }
 
     @Override
-    public Map add(Integer productId, Integer count, Integer userId) {
+    public Map upsert(Integer productId, Integer count, Integer userId) {
         Cart cart = new Cart();
         Map<String, String> returnMap = new HashMap<>();
         Product p = this.productMapper.selectByPrimaryKey(productId);
@@ -57,15 +57,22 @@ public class CartServiceImpl implements ICartService {
             cart.setCreateTime(new Date());
             cart.setUpdateTime(new Date());
             if (p.getStock() < count) {
-                returnMap.put(Const.CartConst.LIMIT_NUM_SUCCESS, Const.CartConst.LIMIT_NUM_FAIL);
                 cart.setQuantity(p.getStock());
+                returnMap.put(Const.CartConst.LIMIT_NUM_SUCCESS, Const.CartConst.LIMIT_NUM_FAIL);
                 returnMap.put("count", "1");
             } else {
-                returnMap.put(Const.CartConst.LIMIT_NUM_SUCCESS, Const.CartConst.LIMIT_NUM_SUCCESS);
                 cart.setQuantity(count);
+                returnMap.put(Const.CartConst.LIMIT_NUM_SUCCESS, Const.CartConst.LIMIT_NUM_SUCCESS);
                 returnMap.put("count", "1");
             }
-            int countDb = this.cartMapper.insertSelective(cart);
+            int countDb = -1;
+            Cart existCart = this.cartMapper.selectByProductIdAndUserId(productId, userId);
+            if (existCart == null) {
+                countDb = this.cartMapper.insertSelective(cart);
+            } else {
+                cart.setId(existCart.getId());
+                countDb = this.cartMapper.updateByPrimaryKeySelective(cart);
+            }
             if (countDb > 0) {
                 returnMap.put("countDb", countDb + "");
             } else {
@@ -77,6 +84,13 @@ public class CartServiceImpl implements ICartService {
         return returnMap;
     }
 
+    @Override
+    public int delete(String productIds) {
+        if (productIds != null) {
+            productIds = productIds.replaceAll("[^0-9,]", "");
+        }
+        return this.cartMapper.deleteCartsByProductIds(productIds);
+    }
 
     private CartVo cartToCartVo(Cart cart) {
         CartVo cartVo = new CartVo();
@@ -84,7 +98,6 @@ public class CartServiceImpl implements ICartService {
         cartVo.setUserId(cart.getUserId());
         cartVo.setProductChecked(cart.getChecked());
         cartVo.setProductId(cart.getProductId());
-
         Product p = this.productMapper.selectByPrimaryKey(cart.getProductId());
         if (p !=  null) {
             cartVo.setProductName(p.getName());
@@ -93,7 +106,6 @@ public class CartServiceImpl implements ICartService {
             cartVo.setProductPrice(p.getPrice());
             cartVo.setProductStatus(p.getStatus());
             cartVo.setProductStock(p.getStock());
-
             if (cart.getQuantity() >= p.getStock()) {
                 cartVo.setQuantity(cart.getQuantity());
                 cartVo.setLimitQuantity(Const.CartConst.LIMIT_NUM_SUCCESS);
@@ -105,5 +117,4 @@ public class CartServiceImpl implements ICartService {
         cartVo.setProductTotalPrice(BigDecimalHelper.mul(cartVo.getProductPrice().doubleValue(), cartVo.getQuantity()));
         return cartVo;
     }
-
 }

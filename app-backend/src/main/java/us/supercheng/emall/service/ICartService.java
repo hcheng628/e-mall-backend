@@ -5,5 +5,6 @@ import java.util.Map;
 
 public interface ICartService {
     CartProductVo list(Integer userId);
-    Map add(Integer productId, Integer count, Integer userId);
+    Map upsert(Integer productId, Integer count, Integer userId);
+    int delete(String productIds);
 }
