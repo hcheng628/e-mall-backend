@@ -13,4 +13,6 @@ public interface IProductService {
     Product findProductById(Integer productId);
     ServerResponse manageSetSaleStatus(Product product, Integer status);
     ServerResponse upsert(Product product);
+    PageInfo findProductsByKeywordsOrCategoryId(Integer pageNum, Integer pageSize, String keywords, Integer categoryId,
+                                                String orderBy);
 }

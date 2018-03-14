@@ -6,6 +6,7 @@ public class Const {
     public static final String APP_PROP_FILE = "emall.properties";
     public static final String APP_DEFAULT_ENCODING = "UTF-8";
     public static final String APP_DATETIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
+    public static final int APP_MONEY_SCALE = 2;
 
     public static final String USERNAME = "USERNAME";
     public static final String E_MAIL = "EMAIL";
@@ -20,9 +21,20 @@ public class Const {
     @Value("${app.passwd.salt.suffix}")
     public static String SALT_PASSWD_SUFFIX;
 
+    public interface CartConst {
+        String LIMIT_NUM_SUCCESS = "LIMIT_NUM_SUCCESS";
+        String LIMIT_NUM_FAIL = "LIMIT_NUM_FAIL";
+        int PRODUCT_CHECKED = 1;
+        int PRODUCT_UNCHECKED = 0;
+    }
+
     public interface FTPConst {
         int BUFFER_SIZE = 1024;
         String ENCODING = Const.APP_DEFAULT_ENCODING;
+    }
+
+    public interface ProductConst {
+        int PRODUCT_STATUS_1 = 1;
     }
 
     /* */
@@ -37,5 +49,4 @@ public class Const {
     public static String FTP_PASS;
     @Value("${ftp.server.http.prefix}")
     public static String FTP_HTTP_PREFIX;
-
 }

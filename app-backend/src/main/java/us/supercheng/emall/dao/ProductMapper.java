@@ -6,18 +6,13 @@ import java.util.List;
 
 public interface ProductMapper {
     int deleteByPrimaryKey(Integer id);
-
     int insert(Product record);
-
     int insertSelective(Product record);
-
     Product selectByPrimaryKey(Integer id);
-
     int updateByPrimaryKeySelective(Product record);
-
     int updateByPrimaryKey(Product record);
-
     List<Product> manageList();
-
     List<Product> manageFindProductsByNameOrId(@Param("productName") String productName, @Param("productId") Integer productId);
+    List<Product> findProductsByKeywordsOrCategoryId(@Param("keywords") String keywords, @Param("categoryId") Integer categoryId,
+                                                     @Param("orderBy") String orderBy);
 }
