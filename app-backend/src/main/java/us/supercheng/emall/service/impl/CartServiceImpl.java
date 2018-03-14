@@ -2,18 +2,21 @@ package us.supercheng.emall.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import us.supercheng.emall.common.Const;
 import us.supercheng.emall.dao.CartMapper;
 import us.supercheng.emall.dao.ProductMapper;
 import us.supercheng.emall.pojo.Cart;
 import us.supercheng.emall.pojo.Product;
+import us.supercheng.emall.service.ICartService;
+import us.supercheng.emall.util.BigDecimalHelper;
 import us.supercheng.emall.vo.CartProductVo;
 import us.supercheng.emall.vo.CartVo;
 
 import java.math.BigDecimal;
-import java.util.List;
+import java.util.*;
 
 @Service("iCartService")
-public class CartServiceImpl {
+public class CartServiceImpl implements ICartService {
 
     @Autowired
     private CartMapper cartMapper;
@@ -23,7 +26,55 @@ public class CartServiceImpl {
 
     public CartProductVo list(Integer userId) {
         List<Cart> carts = this.cartMapper.selectCartsByUserId(userId);
-        return null;
+        List<CartVo> cartVos = new ArrayList<>();
+        for (Cart c : carts) {
+            cartVos.add(this.cartToCartVo(c));
+        }
+        CartProductVo cartProductVo = new CartProductVo();
+        cartProductVo.setAllChecked(true);              // default to true
+        BigDecimal totalPrice = new BigDecimal("0");
+        cartProductVo.setCartVos(cartVos);
+        for (CartVo c : cartVos) {
+            if (c.getProductChecked() == Const.CartConst.PRODUCT_UNCHECKED) {
+                cartProductVo.setAllChecked(false);
+            } else {
+                totalPrice = BigDecimalHelper.add(totalPrice.doubleValue(), c.getProductTotalPrice().doubleValue());
+            }
+        }
+        cartProductVo.setCartTotalPrice(totalPrice);
+        return cartProductVo;
+    }
+
+    @Override
+    public Map add(Integer productId, Integer count, Integer userId) {
+        Cart cart = new Cart();
+        Map<String, String> returnMap = new HashMap<>();
+        Product p = this.productMapper.selectByPrimaryKey(productId);
+        if (p != null) {
+            cart.setChecked(1);
+            cart.setUserId(userId);
+            cart.setProductId(p.getId());
+            cart.setCreateTime(new Date());
+            cart.setUpdateTime(new Date());
+            if (p.getStock() < count) {
+                returnMap.put(Const.CartConst.LIMIT_NUM_SUCCESS, Const.CartConst.LIMIT_NUM_FAIL);
+                cart.setQuantity(p.getStock());
+                returnMap.put("count", "1");
+            } else {
+                returnMap.put(Const.CartConst.LIMIT_NUM_SUCCESS, Const.CartConst.LIMIT_NUM_SUCCESS);
+                cart.setQuantity(count);
+                returnMap.put("count", "1");
+            }
+            int countDb = this.cartMapper.insertSelective(cart);
+            if (countDb > 0) {
+                returnMap.put("countDb", countDb + "");
+            } else {
+                returnMap.put("countDb", "0");
+            }
+        } else {
+            returnMap.put("count", "0");
+        }
+        return returnMap;
     }
 
 
@@ -31,8 +82,6 @@ public class CartServiceImpl {
         CartVo cartVo = new CartVo();
         cartVo.setId(cart.getId());
         cartVo.setUserId(cart.getUserId());
-        cartVo.setQuantity(cart.getQuantity());
-        cartVo.setQuantity(cart.getQuantity());
         cartVo.setProductChecked(cart.getChecked());
         cartVo.setProductId(cart.getProductId());
 
@@ -44,11 +93,16 @@ public class CartServiceImpl {
             cartVo.setProductPrice(p.getPrice());
             cartVo.setProductStatus(p.getStatus());
             cartVo.setProductStock(p.getStock());
+
+            if (cart.getQuantity() >= p.getStock()) {
+                cartVo.setQuantity(cart.getQuantity());
+                cartVo.setLimitQuantity(Const.CartConst.LIMIT_NUM_SUCCESS);
+            } else {
+                cartVo.setQuantity(p.getStatus());
+                cartVo.setLimitQuantity(Const.CartConst.LIMIT_NUM_FAIL);
+            }
         }
-
-        cartVo.setProductTotalPrice(new BigDecimal("50000"));
-        cartVo.setLimitQuantity("??????");
-
+        cartVo.setProductTotalPrice(BigDecimalHelper.mul(cartVo.getProductPrice().doubleValue(), cartVo.getQuantity()));
         return cartVo;
     }
 

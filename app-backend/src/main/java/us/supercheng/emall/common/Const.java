@@ -21,6 +21,13 @@ public class Const {
     @Value("${app.passwd.salt.suffix}")
     public static String SALT_PASSWD_SUFFIX;
 
+    public interface CartConst {
+        String LIMIT_NUM_SUCCESS = "LIMIT_NUM_SUCCESS";
+        String LIMIT_NUM_FAIL = "LIMIT_NUM_FAIL";
+        int PRODUCT_CHECKED = 1;
+        int PRODUCT_UNCHECKED = 0;
+    }
+
     public interface FTPConst {
         int BUFFER_SIZE = 1024;
         String ENCODING = Const.APP_DEFAULT_ENCODING;

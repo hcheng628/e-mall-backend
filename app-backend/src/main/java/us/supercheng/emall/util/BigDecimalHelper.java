@@ -3,8 +3,8 @@ package us.supercheng.emall.util;
 import us.supercheng.emall.common.Const;
 import java.math.BigDecimal;
 
-public class BigDecimalHelp {
-    private BigDecimalHelp(){}
+public class BigDecimalHelper {
+    private BigDecimalHelper(){}
 
     public static BigDecimal add(double a, double b) {
         return new BigDecimal(a+"").add(new BigDecimal(b + ""));

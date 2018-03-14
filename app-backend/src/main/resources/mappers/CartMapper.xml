@@ -114,13 +114,6 @@
     where id = #{id,jdbcType=INTEGER}
   </update>
 
-  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
-    select
-    <include refid="Base_Column_List" />
-    from mmall_cart
-    where id = #{id,jdbcType=INTEGER}
-  </select>
-
   <select id="selectCartsByUserId" resultMap="BaseResultMap" parameterType="java.lang.Integer">
     SELECT
     <include refid="Base_Column_List" />
