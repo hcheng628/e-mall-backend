@@ -69,4 +69,52 @@ public class CartController {
         }
         return ServerResponse.createServerResponse(ResponseCode.LOGIN_REQUIRED.getCode(), ResponseCode.LOGIN_REQUIRED.getDesc());
     }
+
+    @RequestMapping("select.do")
+    @ResponseBody
+    public ServerResponse<CartProductVo> selectCartProduct(Integer productId, HttpSession session) {
+        User user = this.iUserService.getCurrentUser(session);
+        user = new User();
+        user.setId(21);
+        if (user != null) {
+            int count = this.iCartService.select(productId,user.getId());
+            if (count < 0) {
+                return ServerResponse.createServerResponseError("No Such Product ProductID: " + productId + " in Cart");
+            } else {
+                return ServerResponse.createServerResponseSuccess(this.iCartService.list(user.getId()));
+            }
+        }
+        return ServerResponse.createServerResponse(ResponseCode.LOGIN_REQUIRED.getCode(), ResponseCode.LOGIN_REQUIRED.getDesc());
+    }
+
+    @RequestMapping("selectAll.do")
+    @ResponseBody
+    public ServerResponse<CartProductVo> selectAllCartProducts(HttpSession session) {
+        User user = this.iUserService.getCurrentUser(session);
+        user = new User();
+        user.setId(21);
+        if (user != null) {
+            this.iCartService.selectAll(user.getId());
+            return ServerResponse.createServerResponseSuccess(this.iCartService.list(user.getId()));
+        }
+        return ServerResponse.createServerResponse(ResponseCode.LOGIN_REQUIRED.getCode(), ResponseCode.LOGIN_REQUIRED.getDesc());
+    }
+
+    @RequestMapping("unselect.do")
+    @ResponseBody
+    public ServerResponse<CartProductVo> unselectCartProduct(Integer productId, HttpSession session) {
+        User user = this.iUserService.getCurrentUser(session);
+        user = new User();
+        user.setId(21);
+        if (user != null) {
+            int count = this.iCartService.unselect(productId,user.getId());
+            if (count < 0) {
+                return ServerResponse.createServerResponseError("No Such Product ProductID: " + productId + " in Cart");
+            } else {
+                return ServerResponse.createServerResponseSuccess(this.iCartService.list(user.getId()));
+            }
+        }
+        return ServerResponse.createServerResponse(ResponseCode.LOGIN_REQUIRED.getCode(), ResponseCode.LOGIN_REQUIRED.getDesc());
+    }
+
 }
