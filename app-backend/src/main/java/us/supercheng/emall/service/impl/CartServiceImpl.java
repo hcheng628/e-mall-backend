@@ -120,6 +120,11 @@ public class CartServiceImpl implements ICartService {
         this.cartMapper.selectAllCartProducts(userId);
     }
 
+    @Override
+    public void unselectAll(Integer userId) {
+        this.cartMapper.unselectAllCartProducts(userId);
+    }
+
     private CartVo cartToCartVo(Cart cart) {
         CartVo cartVo = new CartVo();
         cartVo.setId(cart.getId());

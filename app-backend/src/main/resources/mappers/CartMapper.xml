@@ -142,4 +142,10 @@
     where user_id = #{userId}
   </update>
 
+  <update id="unselectAllCartProducts" parameterType="java.lang.Integer">
+    update mmall_cart
+    set checked = 0
+    where user_id = #{userId}
+  </update>
+
 </mapper>

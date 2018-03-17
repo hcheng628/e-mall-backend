@@ -117,4 +117,17 @@ public class CartController {
         return ServerResponse.createServerResponse(ResponseCode.LOGIN_REQUIRED.getCode(), ResponseCode.LOGIN_REQUIRED.getDesc());
     }
 
+    @RequestMapping("unselectAll.do")
+    @ResponseBody
+    public ServerResponse<CartProductVo> unselectAllCartProducts(HttpSession session) {
+        User user = this.iUserService.getCurrentUser(session);
+        user = new User();
+        user.setId(21);
+        if (user != null) {
+            this.iCartService.unselectAll(user.getId());
+            return ServerResponse.createServerResponseSuccess(this.iCartService.list(user.getId()));
+        }
+        return ServerResponse.createServerResponse(ResponseCode.LOGIN_REQUIRED.getCode(), ResponseCode.LOGIN_REQUIRED.getDesc());
+    }
+
 }

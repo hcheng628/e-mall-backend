@@ -10,4 +10,5 @@ public interface ICartService {
     int select(Integer productId, Integer userId);
     int unselect(Integer productId, Integer userId);
     void selectAll(Integer userId);
+    void unselectAll(Integer userId);
 }
