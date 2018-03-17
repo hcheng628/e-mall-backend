@@ -3,6 +3,7 @@ package us.supercheng.emall.service.impl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import us.supercheng.emall.common.Const;
+import us.supercheng.emall.common.ServerResponse;
 import us.supercheng.emall.dao.CartMapper;
 import us.supercheng.emall.dao.ProductMapper;
 import us.supercheng.emall.pojo.Cart;
@@ -90,6 +91,38 @@ public class CartServiceImpl implements ICartService {
             productIds = productIds.replaceAll("[^0-9,]", "");
         }
         return this.cartMapper.deleteCartsByProductIds(productIds);
+    }
+
+    @Override
+    public int select(Integer productId, Integer userId) {
+        Cart existCart = this.cartMapper.selectByProductIdAndUserId(productId, userId);
+        if (existCart == null) {
+            return -1;
+        } else {
+            existCart.setChecked(Const.CartConst.PRODUCT_CHECKED);
+            return this.cartMapper.updateByPrimaryKeySelective(existCart);
+        }
+    }
+
+    @Override
+    public int unselect(Integer productId, Integer userId) {
+        Cart existCart = this.cartMapper.selectByProductIdAndUserId(productId, userId);
+        if (existCart == null) {
+            return -1;
+        } else {
+            existCart.setChecked(Const.CartConst.PRODUCT_UNCHECKED);
+            return this.cartMapper.updateByPrimaryKeySelective(existCart);
+        }
+    }
+
+    @Override
+    public void selectAll(Integer userId) {
+        this.cartMapper.selectAllCartProducts(userId);
+    }
+
+    @Override
+    public void unselectAll(Integer userId) {
+        this.cartMapper.unselectAllCartProducts(userId);
     }
 
     private CartVo cartToCartVo(Cart cart) {
