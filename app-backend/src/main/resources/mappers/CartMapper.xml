@@ -136,16 +136,20 @@
     where product_id in ( ${productIds} )
   </delete>
 
-  <update id="selectAllCartProducts" parameterType="java.lang.Integer">
+  <update id="selectCartProductsToggle" parameterType="map">
     update mmall_cart
-    set checked = 1
+    set checked = #{checkStatus}
     where user_id = #{userId}
+    <if test="productId != null" >
+      and product_id = #{productId}
+    </if>
   </update>
 
-  <update id="unselectAllCartProducts" parameterType="java.lang.Integer">
-    update mmall_cart
-    set checked = 0
-    where user_id = #{userId}
-  </update>
+  <select id="getCartTotalItems" parameterType="java.lang.Integer" resultType="int">
+    SELECT NULLIF (SUM(quantity), 0)
+    FROM mmall_cart
+    WHERE
+    user_id
+  </select>
 
 </mapper>

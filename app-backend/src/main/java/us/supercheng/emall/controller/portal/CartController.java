@@ -28,7 +28,7 @@ public class CartController {
     public ServerResponse<CartProductVo> list(HttpSession session) {
         User user = this.iUserService.getCurrentUser(session);
         if (user == null) {
-           return ServerResponse.createServerResponseSuccess(this.iCartService.list(21));
+            return ServerResponse.createServerResponseSuccess(this.iCartService.list(21));
         }
         return ServerResponse.createServerResponse(ResponseCode.LOGIN_REQUIRED.getCode(), ResponseCode.LOGIN_REQUIRED.getDesc());
     }
@@ -41,7 +41,7 @@ public class CartController {
         user = new User();
         user.setId(21);
         if (user != null) {
-            Map map = this.iCartService.upsert(productId , count, user.getId());
+            Map map = this.iCartService.upsert(productId, count, user.getId());
             if (map.get("count").toString().equalsIgnoreCase("0")) {
                 return ServerResponse.createServerResponseError("No Such Product ProductID: " + productId);
             }
@@ -77,7 +77,7 @@ public class CartController {
         user = new User();
         user.setId(21);
         if (user != null) {
-            int count = this.iCartService.select(productId,user.getId());
+            int count = this.iCartService.select(productId, user.getId());
             if (count < 0) {
                 return ServerResponse.createServerResponseError("No Such Product ProductID: " + productId + " in Cart");
             } else {
@@ -107,7 +107,7 @@ public class CartController {
         user = new User();
         user.setId(21);
         if (user != null) {
-            int count = this.iCartService.unselect(productId,user.getId());
+            int count = this.iCartService.unselect(productId, user.getId());
             if (count < 0) {
                 return ServerResponse.createServerResponseError("No Such Product ProductID: " + productId + " in Cart");
             } else {
@@ -130,4 +130,16 @@ public class CartController {
         return ServerResponse.createServerResponse(ResponseCode.LOGIN_REQUIRED.getCode(), ResponseCode.LOGIN_REQUIRED.getDesc());
     }
 
+    @RequestMapping("get_cart_total_items.do")
+    @ResponseBody
+    public ServerResponse getCartTotalItems(HttpSession session) {
+        User user = this.iUserService.getCurrentUser(session);
+        user = new User();
+        user.setId(21);
+        if (user != null) {
+            return ServerResponse.createServerResponseSuccess(this.iCartService.getCartTotalItems(user.getId()));
+        }
+        return ServerResponse.createServerResponse(ResponseCode.LOGIN_REQUIRED.getCode(), ResponseCode.LOGIN_REQUIRED.getDesc());
+
+    }
 }

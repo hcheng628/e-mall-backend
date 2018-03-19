@@ -3,7 +3,6 @@ package us.supercheng.emall.service.impl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import us.supercheng.emall.common.Const;
-import us.supercheng.emall.common.ServerResponse;
 import us.supercheng.emall.dao.CartMapper;
 import us.supercheng.emall.dao.ProductMapper;
 import us.supercheng.emall.pojo.Cart;
@@ -99,9 +98,13 @@ public class CartServiceImpl implements ICartService {
         if (existCart == null) {
             return -1;
         } else {
-            existCart.setChecked(Const.CartConst.PRODUCT_CHECKED);
-            return this.cartMapper.updateByPrimaryKeySelective(existCart);
+            return this.cartMapper.selectCartProductsToggle(userId, productId, Const.CartConst.PRODUCT_CHECKED);
         }
+    }
+
+    @Override
+    public void selectAll(Integer userId) {
+        this.cartMapper.selectCartProductsToggle(userId, null, Const.CartConst.PRODUCT_CHECKED);
     }
 
     @Override
@@ -110,29 +113,29 @@ public class CartServiceImpl implements ICartService {
         if (existCart == null) {
             return -1;
         } else {
-            existCart.setChecked(Const.CartConst.PRODUCT_UNCHECKED);
-            return this.cartMapper.updateByPrimaryKeySelective(existCart);
+            return this.cartMapper.selectCartProductsToggle(userId, productId, Const.CartConst.PRODUCT_UNCHECKED);
         }
     }
 
     @Override
-    public void selectAll(Integer userId) {
-        this.cartMapper.selectAllCartProducts(userId);
+    public void unselectAll(Integer userId) {
+        this.cartMapper.selectCartProductsToggle(userId, null, Const.CartConst.PRODUCT_UNCHECKED);
     }
 
     @Override
-    public void unselectAll(Integer userId) {
-        this.cartMapper.unselectAllCartProducts(userId);
+    public int getCartTotalItems(Integer userId) {
+        return this.cartMapper.getCartTotalItems(userId);
     }
 
     private CartVo cartToCartVo(Cart cart) {
+        System.out.println("Cart Quantity: " + cart.getQuantity());
         CartVo cartVo = new CartVo();
         cartVo.setId(cart.getId());
         cartVo.setUserId(cart.getUserId());
         cartVo.setProductChecked(cart.getChecked());
         cartVo.setProductId(cart.getProductId());
         Product p = this.productMapper.selectByPrimaryKey(cart.getProductId());
-        if (p !=  null) {
+        if (p != null) {
             cartVo.setProductName(p.getName());
             cartVo.setProductSubtitle(p.getSubtitle());
             cartVo.setProductMainImage(p.getMainImage());
@@ -140,11 +143,11 @@ public class CartServiceImpl implements ICartService {
             cartVo.setProductStatus(p.getStatus());
             cartVo.setProductStock(p.getStock());
             if (cart.getQuantity() >= p.getStock()) {
+                cartVo.setQuantity(p.getStock());
+                cartVo.setLimitQuantity(Const.CartConst.LIMIT_NUM_FAIL);
+            } else {
                 cartVo.setQuantity(cart.getQuantity());
                 cartVo.setLimitQuantity(Const.CartConst.LIMIT_NUM_SUCCESS);
-            } else {
-                cartVo.setQuantity(p.getStatus());
-                cartVo.setLimitQuantity(Const.CartConst.LIMIT_NUM_FAIL);
             }
         }
         cartVo.setProductTotalPrice(BigDecimalHelper.mul(cartVo.getProductPrice().doubleValue(), cartVo.getQuantity()));
