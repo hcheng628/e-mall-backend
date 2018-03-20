@@ -15,6 +15,8 @@ public interface CartMapper {
     List<Cart> selectCartsByUserId(Integer userId);
     Cart selectByProductIdAndUserId(@Param("productId") Integer productId, @Param("userId") Integer userId);
     int deleteCartsByProductIds(@Param("productIds") String productIds);
-    int selectAllCartProducts(Integer userId);
-    int unselectAllCartProducts(Integer userId);
+    int selectCartProductsToggle(@Param("userId") Integer userId,
+                                 @Param("productId") Integer productId,
+                                 @Param("checkStatus") Integer checkStatus);
+    int getCartTotalItems(Integer userId);
 }
