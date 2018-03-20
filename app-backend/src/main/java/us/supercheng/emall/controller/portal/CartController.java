@@ -27,7 +27,9 @@ public class CartController {
     @ResponseBody
     public ServerResponse<CartProductVo> list(HttpSession session) {
         User user = this.iUserService.getCurrentUser(session);
-        if (user == null) {
+        user = new User();
+        user.setId(21);
+        if (user != null) {
             return ServerResponse.createServerResponseSuccess(this.iCartService.list(21));
         }
         return ServerResponse.createServerResponse(ResponseCode.LOGIN_REQUIRED.getCode(), ResponseCode.LOGIN_REQUIRED.getDesc());
