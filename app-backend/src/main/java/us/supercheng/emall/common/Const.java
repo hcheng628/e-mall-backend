@@ -1,7 +1,9 @@
 package us.supercheng.emall.common;
 
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
+import us.supercheng.emall.util.PropHelper;
 
+@Configuration
 public class Const {
     public static final String APP_PROP_FILE = "emall.properties";
     public static final String APP_DEFAULT_ENCODING = "UTF-8";
@@ -15,11 +17,35 @@ public class Const {
     public static final int ROLE_CUSTOMER = 0;
     public static final int ROLE_ADMIN = 1;
 
-    @Value("${app.passwd.salt.prefix}")
+    // Auth
     public static String SALT_PASSWD_PREFIX;
-
-    @Value("${app.passwd.salt.suffix}")
     public static String SALT_PASSWD_SUFFIX;
+
+    // FTP
+    public static String FTP_IP;
+    public static Integer FTP_PORT;
+    public static String FTP_USER;
+    public static String FTP_PASS;
+    public static String FTP_HTTP_PREFIX;
+
+    static {
+        System.out.println("AppConfig Init Enter");
+        FTP_IP = PropHelper.getValue("ftp.server.ip");
+        FTP_PORT = Integer.parseInt(PropHelper.getValue("ftp.server.port"));
+        FTP_USER = PropHelper.getValue("ftp.server.user");
+        FTP_PASS = PropHelper.getValue("ftp.server.pass");
+        FTP_HTTP_PREFIX = PropHelper.getValue("ftp.server.http.prefix");
+
+        SALT_PASSWD_PREFIX = PropHelper.getValue("app.passwd.salt.prefix");
+        SALT_PASSWD_SUFFIX = PropHelper.getValue("app.passwd.salt.suffix");
+
+        System.out.println("FTP Info: \r\nFTP_IP: " + FTP_IP + " FTP_PORT: "+ FTP_PORT +
+                "\r\nFTP_USER: " + FTP_USER + " FTP_PASS: " + FTP_PASS + "\r\nFTP_HTTP_PREFIX: " + FTP_HTTP_PREFIX +
+                "\r\nPASSWD Salt Info: \r\nSALT_PASSWD_PREFIX: " + SALT_PASSWD_PREFIX + " SALT_PASSWD_SUFFIX: " + SALT_PASSWD_SUFFIX);
+        System.out.println("AppConfig Init Exit");
+    }
+
+
 
     public interface CartConst {
         String LIMIT_NUM_SUCCESS = "LIMIT_NUM_SUCCESS";
@@ -36,17 +62,4 @@ public class Const {
     public interface ProductConst {
         int PRODUCT_STATUS_1 = 1;
     }
-
-    /* */
-    @Value("${ftp.server.ip}")
-    public static String FTP_IP;
-    @Value("${ftp.server.port}")
-    public static Integer FTP_PORT;
-    @Value("${ftp.server.user}")
-    public static String FTP_USER;
-
-    @Value("${ftp.server.pass}")
-    public static String FTP_PASS;
-    @Value("${ftp.server.http.prefix}")
-    public static String FTP_HTTP_PREFIX;
 }
