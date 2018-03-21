@@ -11,63 +11,19 @@ import java.util.UUID;
 
 public class FTPHelper {
 
-    //@Value("${ftp.server.ip}")
-    private String ip;
-
-    //@Value("${ftp.server.port}")
-    private String port;
-
-    //@Value("${ftp.server.user}")
-    private String user; // = Const.FTP_USER;
-
-    //@Value("${ftp.server.pass}")
-    private String pass; // = Const.FTP_PASS;
     private FTPClient ftpClient;
 
-    public String getIp() {
-        return ip;
-    }
-
-    public void setIp(String ip) {
-        this.ip = ip;
-    }
-
-    public String getPort() {
-        return port;
-    }
-
-    public void setPort(String port) {
-        this.port = port;
-    }
-
-    public String getUser() {
-        return user;
-    }
-
-    public void setUser(String user) {
-        this.user = user;
-    }
-
-    public String getPass() {
-        return pass;
-    }
-
-    public void setPass(String pass) {
-        this.pass = pass;
-    }
-
-    public FTPClient getFtpClient() {
-        return ftpClient;
-    }
-
-    public void setFtpClient(FTPClient ftpClient) {
-        this.ftpClient = ftpClient;
-    }
-
-    public boolean doConnect() {
+    private FTPHelper () {
         this.ftpClient = new FTPClient();
+    }
+
+    private FTPClient getFtpClient() {
+        return this.ftpClient;
+    }
+
+    private boolean doConnect(FTPClient ftpClient) {
         try {
-            this.ftpClient.connect(this.ip, Integer.parseInt(this.port));
+            ftpClient.connect(Const.FTP_IP, Const.FTP_PORT);
             return true;
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -75,9 +31,9 @@ public class FTPHelper {
         }
     }
 
-    public boolean doLogin() {
+    private boolean doLogin(FTPClient ftpClient) {
         try {
-            this.ftpClient.login(this.user, this.pass);
+            ftpClient.login(Const.FTP_USER, Const.FTP_PASS);
             return true;
         }catch (IOException ex) {
             ex.printStackTrace();
@@ -86,16 +42,11 @@ public class FTPHelper {
     }
 
     public static String doUpload(String remoteDir, File file) {
+        //System.out.println("Init " + );
         FTPHelper ftpHelper = new FTPHelper();
-        ftpHelper.setIp(PropHelper.getValue("ftp.server.ip"));
-        ftpHelper.setPort(PropHelper.getValue("ftp.server.port"));
-        ftpHelper.setUser(PropHelper.getValue("ftp.server.user"));
-        ftpHelper.setPass(PropHelper.getValue("ftp.server.pass"));
-        System.out.println("Init " + ftpHelper.toString());
-
         String fileName = null;
-        if (ftpHelper.doConnect()) {
-            if (ftpHelper.doLogin()) {
+        if (ftpHelper.doConnect(ftpHelper.getFtpClient())) {
+            if (ftpHelper.doLogin(ftpHelper.getFtpClient())) {
                 String extension = file.getName().substring(file.getName().lastIndexOf(".") + 1);
                 System.out.println("Extension: " + extension);
                 ftpHelper.getFtpClient().enterLocalPassiveMode();
@@ -126,15 +77,5 @@ public class FTPHelper {
             }
         }
         return fileName;
-    }
-
-    @Override
-    public String toString() {
-        return "FTPHelper{" +
-                "ip='" + ip + '\'' +
-                ", port='" + port + '\'' +
-                ", user='" + user + '\'' +
-                ", pass='" + pass + '\'' +
-                '}';
     }
 }

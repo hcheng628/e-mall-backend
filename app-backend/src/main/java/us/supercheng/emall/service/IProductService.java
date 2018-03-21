@@ -8,11 +8,12 @@ public interface IProductService {
     ServerResponse insert(Product product);
     ServerResponse update(Product product);
     PageInfo manageList(Integer pageNum, Integer pageSize);
-    PageInfo manageFindProductsByNameOrId(Integer pageNum, Integer pageSize, String productName, Integer productId);
+    PageInfo manageFindProductsByNameOrId(Integer pageNum, Integer pageSize, String productName,
+                                          Integer productId);
     Product manageDetail(Integer productId);
     Product findProductById(Integer productId);
     ServerResponse manageSetSaleStatus(Product product, Integer status);
     ServerResponse upsert(Product product);
-    PageInfo findProductsByKeywordsOrCategoryId(Integer pageNum, Integer pageSize, String keywords, Integer categoryId,
-                                                String orderBy);
+    PageInfo findProductsByKeywordsOrCategoryId(Integer pageNum, Integer pageSize, String keywords,
+                                                Integer categoryId, String orderBy);
 }
