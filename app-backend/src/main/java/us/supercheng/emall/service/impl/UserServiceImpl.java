@@ -11,7 +11,6 @@ import us.supercheng.emall.dao.UserMapper;
 import us.supercheng.emall.pojo.User;
 import us.supercheng.emall.service.IUserService;
 import us.supercheng.emall.util.MD5Helper;
-
 import javax.servlet.http.HttpSession;
 import java.util.UUID;
 
