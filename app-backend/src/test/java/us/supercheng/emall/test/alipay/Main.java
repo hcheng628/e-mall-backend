@@ -48,6 +48,17 @@ public class Main {
     private static AlipayMonitorService monitorService;
 
     static {
+        System.setProperty("http.proxyHost", "10.110.17.6");
+        System.setProperty("http.proxyPort", "8080");
+        System.setProperty("https.proxyHost", "10.110.17.6");
+        System.setProperty("https.proxyPort", "8080");
+
+        System.out.println(System.getProperty("http.proxyHost"));
+        System.out.println(System.getProperty("http.proxyPort"));
+        System.out.println(System.getProperty("https.proxyHost"));
+        System.out.println(System.getProperty("https.proxyPort"));
+
+
         /** 一定要在创建AlipayTradeService之前调用Configs.init()设置默认参数
          *  Configs会读取classpath下的zfbinfo.properties文件配置信息，如果找不到该文件则确认该文件是否在classpath目录
          */
@@ -272,15 +283,12 @@ public class Main {
             case SUCCESS:
                 log.info("支付宝支付成功: )");
                 break;
-
             case FAILED:
                 log.error("支付宝支付失败!!!");
                 break;
-
             case UNKNOWN:
                 log.error("系统异常，订单状态未知!!!");
                 break;
-
             default:
                 log.error("不支持的交易状态，交易返回异常!!!");
                 break;
@@ -300,10 +308,8 @@ public class Main {
         switch (result.getTradeStatus()) {
             case SUCCESS:
                 log.info("查询返回该订单支付成功: )");
-
                 AlipayTradeQueryResponse response = result.getResponse();
                 dumpResponse(response);
-
                 log.info(response.getTradeStatus());
                 if (Utils.isListNotEmpty(response.getFundBillList())) {
                     for (TradeFundBill bill : response.getFundBillList()) {
@@ -311,15 +317,12 @@ public class Main {
                     }
                 }
                 break;
-
             case FAILED:
                 log.error("查询返回该订单支付失败或被关闭!!!");
                 break;
-
             case UNKNOWN:
                 log.error("系统异常，订单支付状态未知!!!");
                 break;
-
             default:
                 log.error("不支持的交易状态，交易返回异常!!!");
                 break;
@@ -354,15 +357,12 @@ public class Main {
             case SUCCESS:
                 log.info("支付宝退款成功: )");
                 break;
-
             case FAILED:
                 log.error("支付宝退款失败!!!");
                 break;
-
             case UNKNOWN:
                 log.error("系统异常，订单退款状态未知!!!");
                 break;
-
             default:
                 log.error("不支持的交易状态，交易返回异常!!!");
                 break;
@@ -431,25 +431,20 @@ public class Main {
         switch (result.getTradeStatus()) {
             case SUCCESS:
                 log.info("支付宝预下单成功: )");
-
                 AlipayTradePrecreateResponse response = result.getResponse();
                 dumpResponse(response);
-
                 // 需要修改为运行机器上的路径
                 String filePath = String.format("/Users/sudo/Desktop/qr-%s.png",
                     response.getOutTradeNo());
                 log.info("filePath:" + filePath);
                 //                ZxingUtils.getQRCodeImge(response.getQrCode(), 256, filePath);
                 break;
-
             case FAILED:
                 log.error("支付宝预下单失败!!!");
                 break;
-
             case UNKNOWN:
                 log.error("系统异常，预下单状态未知!!!");
                 break;
-
             default:
                 log.error("不支持的交易状态，交易返回异常!!!");
                 break;

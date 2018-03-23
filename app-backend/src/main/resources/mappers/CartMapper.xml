@@ -152,4 +152,12 @@
     user_id
   </select>
 
+  <select id="selectCheckedCartsByUserId" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from mmall_cart
+    where checked = 1
+    and user_id = #{userId}
+  </select>
+
 </mapper>

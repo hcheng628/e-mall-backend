@@ -288,6 +288,7 @@
           <encoding>UTF-8</encoding>
           <compilerArguments>
             <extdirs>${project.basedir}/src/main/webapp/WEB-INF/lib</extdirs>
+            <!--<extdirs>${project.basedir}/src/main/webapp/WEB-INF/upload/Images/QR</extdirs>-->
           </compilerArguments>
         </configuration>
       </plugin>
