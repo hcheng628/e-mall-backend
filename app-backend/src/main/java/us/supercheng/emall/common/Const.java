@@ -17,6 +17,11 @@ public class Const {
     public static final int ROLE_CUSTOMER = 0;
     public static final int ROLE_ADMIN = 1;
 
+    public static final String APP_QR_PATH = "/upload/Images/QR/";
+
+
+    public static final boolean APP_USE_HTTP_PROXY_FLAG = false;
+
     // Auth
     public static String SALT_PASSWD_PREFIX;
     public static String SALT_PASSWD_SUFFIX;
