@@ -39,7 +39,7 @@
     <commons.configuration>1.10</commons.configuration>
     <commons.lang>2.6</commons.lang>
     <commons.logging>1.1.1</commons.logging>
-    <google.zxing>2.1</google.zxing>
+    <google.zxing>3.3.0</google.zxing>
     <google.gson>2.3.1</google.gson>
     <hamcrest.core>1.3</hamcrest.core>
     <redis.clients.jedis>2.9.0</redis.clients.jedis>
@@ -243,6 +243,11 @@
     <dependency>
       <groupId>com.google.zxing</groupId>
       <artifactId>core</artifactId>
+      <version>${google.zxing}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.zxing</groupId>
+      <artifactId>javase</artifactId>
       <version>${google.zxing}</version>
     </dependency>
 
