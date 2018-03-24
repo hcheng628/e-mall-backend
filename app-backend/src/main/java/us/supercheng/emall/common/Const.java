@@ -20,7 +20,7 @@ public class Const {
     public static final String APP_QR_PATH = "/upload/Images/QR/";
 
 
-    public static final boolean APP_USE_HTTP_PROXY_FLAG = false;
+    public static final boolean APP_USE_HTTP_PROXY_FLAG = true;
 
     // Auth
     public static String SALT_PASSWD_PREFIX;
@@ -51,6 +51,46 @@ public class Const {
     }
 
 
+
+
+
+    public interface PaymentSystem {
+        int ALIPAY = 1;
+
+        enum OrderStatusEnum {
+            CANCELED(0, "CANCELED"),
+            UNPAID(10, "UNPAID"),
+            PAID(20, "PAID"),
+            SHIPPED(40, "SHIPPED"),
+            FINISHED(50, "FINISHED"),
+            CLOSED(60, "CLOSED");
+
+            private int code;
+            private String val;
+
+            OrderStatusEnum(int code, String val) {
+                this.code = code;
+                this.val = val;
+            }
+
+            public int getCode() {
+                return this.code;
+            }
+
+            public String getVal() {
+                return this.val;
+            }
+
+            public static OrderStatusEnum codeOf(int code) {
+                for (OrderStatusEnum orderStatusEnum : values()) {
+                    if (orderStatusEnum.getCode() == code) {
+                        return orderStatusEnum;
+                    }
+                }
+                throw new RuntimeException("No OrderStatusEnum Found");
+            }
+        }
+    }
 
     public interface CartConst {
         String LIMIT_NUM_SUCCESS = "LIMIT_NUM_SUCCESS";

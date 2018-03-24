@@ -5,11 +5,14 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import us.supercheng.emall.common.ResponseCode;
 import us.supercheng.emall.common.ServerResponse;
+import us.supercheng.emall.pojo.User;
 import us.supercheng.emall.service.IOrderService;
 import us.supercheng.emall.service.IUserService;
-import javax.servlet.http.HttpServletRequest;
+import us.supercheng.emall.vo.OrderCartVo;
 import javax.servlet.http.HttpSession;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/order/")
@@ -24,14 +27,26 @@ public class OrderController {
 
     @RequestMapping("create.do")
     @ResponseBody
-    public ServerResponse create(Integer shippingId, HttpServletRequest request) {
-        return iOrderService.create(21, 30, request);
+    public ServerResponse create(Integer shippingId, HttpSession session) {
+        User currentUser = this.iUserService.getCurrentUser(session);
+        currentUser = new User();
+        currentUser.setId(1);
+        if (currentUser != null) {
+            return this.iOrderService.create(currentUser.getId(), shippingId);
+        }
+        return ServerResponse.createServerResponse(ResponseCode.LOGIN_REQUIRED.getCode(), ResponseCode.LOGIN_REQUIRED.getDesc());
     }
 
-    @RequestMapping("get_order_cart_product.do")
+    @RequestMapping("get_order_cart.do")
     @ResponseBody
-    public ServerResponse getOrderCartProduct(HttpSession session) {
-        return null;
+    public ServerResponse<OrderCartVo> getOrderCart(HttpSession session) {
+        User currentUser = this.iUserService.getCurrentUser(session);
+        currentUser = new User();
+        currentUser.setId(1);
+        if (currentUser != null) {
+            return this.iOrderService.getOrderCart(currentUser.getId());
+        }
+        return ServerResponse.createServerResponse(ResponseCode.LOGIN_REQUIRED.getCode(), ResponseCode.LOGIN_REQUIRED.getDesc());
     }
 
     @RequestMapping("list.do")
@@ -46,5 +61,17 @@ public class OrderController {
     @ResponseBody
     public ServerResponse detail(Integer orderNum, HttpSession session) {
         return null;
+    }
+
+    @RequestMapping("pay.do")
+    @ResponseBody
+    public ServerResponse<Map> pay(Long orderNo, HttpSession session) {
+        User currentUser = this.iUserService.getCurrentUser(session);
+        currentUser = new User();
+        currentUser.setId(1);
+        if (currentUser != null) {
+            return this.iOrderService.pay(orderNo, currentUser.getId());
+        }
+        return ServerResponse.createServerResponse(ResponseCode.LOGIN_REQUIRED.getCode(), ResponseCode.LOGIN_REQUIRED.getDesc());
     }
 }
