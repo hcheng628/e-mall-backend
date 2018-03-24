@@ -98,7 +98,7 @@ public class OrderServiceImpl implements IOrderService {
         }
     }
 
-    public ServerResponse<OrderCartVo> getOrderCartProduct(Integer userId) {
+    public ServerResponse<OrderCartVo> getOrderCart(Integer userId) {
         List<Cart> carts = this.cartMapper.selectCheckedCartsByUserId(userId);
         if (carts.size() == 0) {
             return ServerResponse.createServerResponseError("No Checked Item(s) Found in Cart");

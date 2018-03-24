@@ -7,6 +7,6 @@ import java.util.Map;
 
 public interface IOrderService {
     ServerResponse<OrderVo> create(Integer userId, Integer shippingId);
-    ServerResponse<OrderCartVo> getOrderCartProduct(Integer userId);
+    ServerResponse<OrderCartVo> getOrderCart(Integer userId);
     ServerResponse<Map> pay(Long orderNo, Integer userId);
 }

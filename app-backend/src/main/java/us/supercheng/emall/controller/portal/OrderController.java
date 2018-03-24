@@ -37,14 +37,14 @@ public class OrderController {
         return ServerResponse.createServerResponse(ResponseCode.LOGIN_REQUIRED.getCode(), ResponseCode.LOGIN_REQUIRED.getDesc());
     }
 
-    @RequestMapping("get_order_cart_product.do")
+    @RequestMapping("get_order_cart.do")
     @ResponseBody
-    public ServerResponse<OrderCartVo> getOrderCartProduct(HttpSession session) {
+    public ServerResponse<OrderCartVo> getOrderCart(HttpSession session) {
         User currentUser = this.iUserService.getCurrentUser(session);
         currentUser = new User();
         currentUser.setId(1);
         if (currentUser != null) {
-            return this.iOrderService.getOrderCartProduct(currentUser.getId());
+            return this.iOrderService.getOrderCart(currentUser.getId());
         }
         return ServerResponse.createServerResponse(ResponseCode.LOGIN_REQUIRED.getCode(), ResponseCode.LOGIN_REQUIRED.getDesc());
     }
