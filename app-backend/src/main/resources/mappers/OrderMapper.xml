@@ -203,4 +203,11 @@
     where order_no = #{orderNo}
     and user_id = #{userId}
   </select>
+
+  <select id="selectOrdersByUserId" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from mmall_order
+    where user_id = #{userId}
+  </select>
 </mapper>
