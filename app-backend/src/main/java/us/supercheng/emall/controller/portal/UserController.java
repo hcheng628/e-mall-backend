@@ -10,7 +10,6 @@ import us.supercheng.emall.common.ResponseCode;
 import us.supercheng.emall.common.ServerResponse;
 import us.supercheng.emall.pojo.User;
 import us.supercheng.emall.service.IUserService;
-
 import javax.servlet.http.HttpSession;
 
 @Controller

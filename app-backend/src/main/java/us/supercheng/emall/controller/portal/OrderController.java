@@ -1,5 +1,6 @@
 package us.supercheng.emall.controller.portal;
 
+import com.github.pagehelper.PageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -51,17 +52,28 @@ public class OrderController {
 
     @RequestMapping("list.do")
     @ResponseBody
-    public ServerResponse list(@RequestParam(value = "pageSize", defaultValue = "1") Integer pageSize,
-                                              @RequestParam(value = "pageNum", defaultValue = "10") Integer pageNum,
-                                              HttpSession session) {
-        return null;
+    public ServerResponse<PageInfo> list(@RequestParam(value = "pageSize", defaultValue = "1") Integer pageSize,
+                                         @RequestParam(value = "pageNum", defaultValue = "10") Integer pageNum,
+                                         HttpSession session) {
+        User currentUser = this.iUserService.getCurrentUser(session);
+        currentUser = new User();
+        currentUser.setId(1);
+        if (currentUser != null) {
+            return this.iOrderService.list(currentUser.getId(), pageNum, pageSize);
+        }
+        return ServerResponse.createServerResponse(ResponseCode.LOGIN_REQUIRED.getCode(), ResponseCode.LOGIN_REQUIRED.getDesc());
     }
 
     @RequestMapping("detail.do")
     @ResponseBody
-    public ServerResponse detail(Integer orderNum, HttpSession session) {
-        return null;
-    }
+    public ServerResponse detail(Long orderNo, HttpSession session) {
+        User currentUser = this.iUserService.getCurrentUser(session);
+        currentUser = new User();
+        currentUser.setId(1);
+        if (currentUser != null) {
+            return this.iOrderService.detail(orderNo, currentUser.getId());
+        }
+        return ServerResponse.createServerResponse(ResponseCode.LOGIN_REQUIRED.getCode(), ResponseCode.LOGIN_REQUIRED.getDesc());    }
 
     @RequestMapping("pay.do")
     @ResponseBody

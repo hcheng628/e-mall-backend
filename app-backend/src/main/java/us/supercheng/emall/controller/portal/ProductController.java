@@ -11,7 +11,6 @@ import us.supercheng.emall.pojo.Product;
 import us.supercheng.emall.pojo.User;
 import us.supercheng.emall.service.IProductService;
 import us.supercheng.emall.service.IUserService;
-
 import javax.servlet.http.HttpSession;
 
 @Controller
