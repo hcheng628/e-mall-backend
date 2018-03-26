@@ -91,8 +91,10 @@ public class OrderServiceImpl implements IOrderService {
                 orderItem.setCreateTime(new Date());
                 orderItems.add(orderItem);
             }
-            int count = this.orderItemMapper.insertSelectiveBatch(orderItems);
-            System.out.println("Insert Batch Count: " + count);
+            int count = this.orderItemMapper.insertBatch(orderItems);
+            if (count != orderItems.size()) {
+                return ServerResponse.createServerResponseError("Processing Order Item(s) Failed");
+            }
             OrderVo orderVo = this.transformToCartVo(order, orderItems, shippingId);
             return ServerResponse.createServerResponseSuccess(orderVo);
         } else {

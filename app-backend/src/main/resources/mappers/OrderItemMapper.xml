@@ -112,7 +112,7 @@
         </trim>
     </insert>
 
-    <insert id="insertSelectiveBatch" parameterType="list">
+    <insert id="insertBatch" parameterType="list">
         insert into mmall_order_item
         ( order_no, user_id, product_id, product_name, product_image, current_unit_price, quantity, total_price, create_time )
         values
