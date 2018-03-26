@@ -27,6 +27,7 @@ import us.supercheng.emall.util.QRImageHelper;
 import us.supercheng.emall.vo.OrderCartVo;
 import us.supercheng.emall.vo.OrderItemVo;
 import us.supercheng.emall.vo.OrderVo;
+
 import java.math.BigDecimal;
 import java.util.*;
 
@@ -88,10 +89,10 @@ public class OrderServiceImpl implements IOrderService {
                 orderItem.setTotalPrice(BigDecimalHelper.mul(orderItem.getCurrentUnitPrice().doubleValue(),
                         orderItem.getQuantity()));
                 orderItem.setCreateTime(new Date());
-                // This needs to be improved to insert batch
                 orderItems.add(orderItem);
-                this.orderItemMapper.insert(orderItem);
             }
+            int count = this.orderItemMapper.insertSelectiveBatch(orderItems);
+            System.out.println("Insert Batch Count: " + count);
             OrderVo orderVo = this.transformToCartVo(order, orderItems, shippingId);
             return ServerResponse.createServerResponseSuccess(orderVo);
         } else {
@@ -117,7 +118,7 @@ public class OrderServiceImpl implements IOrderService {
         if (orders.size() == 0) {
             return ServerResponse.createServerResponseError("No Order Found for UserID: " + userId);
         }
-        for(Order eachOrder : orders) {
+        for (Order eachOrder : orders) {
             List<OrderItem> orderItems = this.orderItemMapper.selectByOrderNoAndUserId(eachOrder.getOrderNo(), userId);
             OrderVo orderVo = this.transformToOrderVoFromOrderItems(orderItems, eachOrder);
             orderVos.add(orderVo);
