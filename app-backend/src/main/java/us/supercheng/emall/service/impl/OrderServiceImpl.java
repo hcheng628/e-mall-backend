@@ -7,6 +7,7 @@ import com.alipay.demo.trade.model.builder.AlipayTradePrecreateRequestBuilder;
 import com.alipay.demo.trade.model.result.AlipayF2FPrecreateResult;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import org.omg.CORBA.ORB;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import us.supercheng.emall.common.Const;
@@ -126,6 +127,20 @@ public class OrderServiceImpl implements IOrderService {
         return ServerResponse.createServerResponseSuccess(pageInfo);
     }
 
+    public ServerResponse<PageInfo> listAdmin(Integer pageNum, Integer pageSize) {
+        PageHelper.startPage(pageNum, pageSize);
+        List<Order> orders = this.orderMapper.selectAllOrders();
+        PageInfo pageInfo = new PageInfo(orders);
+        List<OrderVo> orderVos = new ArrayList<>();
+        for (Order order : orders) {
+            List<OrderItem> orderItems = this.orderItemMapper.selectByOrderNo(order.getOrderNo());
+            OrderVo orderVo = this.transformToOrderVoFromOrderItems(orderItems, order);
+            orderVos.add(orderVo);
+        }
+        pageInfo.setList(orderVos);
+        return ServerResponse.createServerResponseSuccess(pageInfo);
+    }
+
     public ServerResponse<OrderVo> detail(Long orderNo, Integer userId) {
         Order order = this.orderMapper.selectByOrderNoAndUserId(orderNo, userId);
         if (order == null) {
@@ -134,6 +149,35 @@ public class OrderServiceImpl implements IOrderService {
         List<OrderItem> orderItems = this.orderItemMapper.selectByOrderNoAndUserId(orderNo, userId);
         OrderVo orderVo = this.transformToOrderVoFromOrderItems(orderItems, order);
         return ServerResponse.createServerResponseSuccess(orderVo);
+    }
+
+    public ServerResponse<OrderVo> detailAdmin(Long orderNo) {
+        Order order = this.orderMapper.selectByOrderNo(orderNo);
+        if (order == null) {
+            return ServerResponse.createServerResponseError("Order Number: " + orderNo + " Not Found");
+        }
+        List<OrderItem> orderItems = this.orderItemMapper.selectByOrderNo(orderNo);
+        OrderVo orderVo = this.transformToOrderVoFromOrderItems(orderItems, order);
+        return ServerResponse.createServerResponseSuccess(orderVo);
+    }
+
+    public ServerResponse<String> shipGoods(Long orderNo) {
+        Order order = this.orderMapper.selectByOrderNo(orderNo);
+        if (order == null) {
+            return ServerResponse.createServerResponseError("No Such Order OrderID: " + orderNo);
+        }
+        if (order.getStatus() == Const.PaymentSystem.OrderStatusEnum.PAID.getCode()) {
+            order.setStatus(Const.PaymentSystem.OrderStatusEnum.SHIPPED.getCode());
+            int count = this.orderMapper.updateByPrimaryKeySelective(order);
+            if (count > 0) {
+                return ServerResponse.createServerResponseSuccess("Order Shipment Success");
+            } else {
+                return ServerResponse.createServerResponseError("Order Shipment Fail");
+            }
+        } else {
+            return ServerResponse.createServerResponseError("Payment for OrderID: " + orderNo + " "
+                    + Const.PaymentSystem.OrderStatusEnum.UNPAID.getVal());
+        }
     }
 
     public ServerResponse<Map> pay(Long orderNo, Integer userId) {
