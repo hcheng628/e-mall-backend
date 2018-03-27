@@ -102,6 +102,24 @@ public class OrderServiceImpl implements IOrderService {
         }
     }
 
+    @Override
+    public ServerResponse<Boolean> cancel(Long orderNo, Integer userId) {
+        Order order = this.orderMapper.selectByOrderNoAndUserId(orderNo, userId);
+        if (order == null) {
+            return ServerResponse.createServerResponseError("Order Number: " + orderNo + " Not Found");
+        }
+        if (order.getStatus() != Const.PaymentSystem.OrderStatusEnum.UNPAID.getCode()) {
+            return ServerResponse.createServerResponseError("Cannot Cancel Order at " +
+                    Const.PaymentSystem.OrderStatusEnum.codeOf(order.getStatus()).getVal() + " Stage.");
+        }
+        order.setStatus(Const.PaymentSystem.OrderStatusEnum.CANCELED.getCode());
+        int count = this.orderMapper.updateByPrimaryKeySelective(order);
+        if (count > 0) {
+            return ServerResponse.createServerResponseSuccess(true);
+        }
+        return ServerResponse.createServerResponseError("Fail to Cancel Order OrderID: " + orderNo);
+    }
+
     public ServerResponse<OrderCartVo> getOrderCart(Integer userId) {
         List<Cart> carts = this.cartMapper.selectCheckedCartsByUserId(userId);
         if (carts.size() == 0) {
@@ -162,6 +180,12 @@ public class OrderServiceImpl implements IOrderService {
         List<OrderItem> orderItems = this.orderItemMapper.selectByOrderNo(orderNo);
         OrderVo orderVo = this.transformToOrderVoFromOrderItems(orderItems, order);
         return ServerResponse.createServerResponseSuccess(orderVo);
+    }
+
+    @Override
+    public ServerResponse<OrderVo> searchAdmin(Long orderNo, Integer pageNum, Integer pageSize) {
+        // No clear requirement for this method
+        return null;
     }
 
     public ServerResponse<String> shipGoods(Long orderNo) {
@@ -254,6 +278,24 @@ public class OrderServiceImpl implements IOrderService {
                 //log.error("不支持的交易状态，交易返回异常!!!");
                 return ServerResponse.createServerResponseError("Unknown Alipay System Error");
         }
+    }
+
+    @Override
+    public ServerResponse alipayCallback(Map<String, String> params) {
+        // This needs to be implemented
+        return null;
+    }
+
+    @Override
+    public ServerResponse queryOrderPayStatus(Long orderNo, Integer userId) {
+        Order order = this.orderMapper.selectByOrderNoAndUserId(orderNo, userId);
+        if (order == null) {
+            return ServerResponse.createServerResponseError("Order Number: " + orderNo + " Not Found");
+        }
+        if (order.getStatus() >= Const.PaymentSystem.OrderStatusEnum.PAID.getCode()) {
+            return ServerResponse.createServerResponseSuccess("true");
+        }
+        return ServerResponse.createServerResponseError("false");
     }
 
     private OrderVo transformToCartVo(Order order, List<OrderItem> orderItems, Integer shippingId) {

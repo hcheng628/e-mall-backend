@@ -38,6 +38,19 @@ public class OrderController {
         return ServerResponse.createServerResponse(ResponseCode.LOGIN_REQUIRED.getCode(), ResponseCode.LOGIN_REQUIRED.getDesc());
     }
 
+    @RequestMapping("cancel.do")
+    @ResponseBody
+    public ServerResponse cancel(Long orderNo, HttpSession session) {
+        User currentUser = this.iUserService.getCurrentUser(session);
+        currentUser = new User();
+        currentUser.setId(1);
+        if (currentUser != null) {
+            return this.iOrderService.cancel(orderNo, currentUser.getId());
+        }
+        return ServerResponse.createServerResponse(ResponseCode.LOGIN_REQUIRED.getCode(), ResponseCode.LOGIN_REQUIRED.getDesc());
+    }
+
+
     @RequestMapping("get_order_cart.do")
     @ResponseBody
     public ServerResponse<OrderCartVo> getOrderCart(HttpSession session) {
@@ -83,6 +96,18 @@ public class OrderController {
         currentUser.setId(1);
         if (currentUser != null) {
             return this.iOrderService.pay(orderNo, currentUser.getId());
+        }
+        return ServerResponse.createServerResponse(ResponseCode.LOGIN_REQUIRED.getCode(), ResponseCode.LOGIN_REQUIRED.getDesc());
+    }
+
+    @RequestMapping("query_order_pay_status.do")
+    @ResponseBody
+    public ServerResponse<Map> queryOrderPayStatus(Long orderNo, HttpSession session) {
+        User currentUser = this.iUserService.getCurrentUser(session);
+        currentUser = new User();
+        currentUser.setId(1);
+        if (currentUser != null) {
+            return this.iOrderService.queryOrderPayStatus(orderNo, currentUser.getId());
         }
         return ServerResponse.createServerResponse(ResponseCode.LOGIN_REQUIRED.getCode(), ResponseCode.LOGIN_REQUIRED.getDesc());
     }
