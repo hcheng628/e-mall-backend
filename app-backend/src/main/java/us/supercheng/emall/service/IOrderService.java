@@ -9,7 +9,7 @@ import java.util.Map;
 
 public interface IOrderService {
     ServerResponse<Map> pay(Long orderNo, Integer userId);
-    ServerResponse alipayCallback(Map<String, String> params);
+    String alipayCallback(Map<String, String> params);
     ServerResponse queryOrderPayStatus(Long orderNo, Integer userId);
     ServerResponse<OrderVo> create(Integer userId, Integer shippingId);
     ServerResponse<Boolean> cancel(Long orderNo, Integer userId);

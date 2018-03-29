@@ -7,6 +7,7 @@ import com.alipay.demo.trade.model.builder.AlipayTradePrecreateRequestBuilder;
 import com.alipay.demo.trade.model.result.AlipayF2FPrecreateResult;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import net.sf.jsqlparser.schema.Server;
 import org.omg.CORBA.ORB;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -252,8 +253,8 @@ public class OrderServiceImpl implements IOrderService {
                 .setSubject(subject).setTotalAmount(totalAmount).setOutTradeNo(outTradeNo)
                 .setUndiscountableAmount(undiscountableAmount).setSellerId(sellerId).setBody(body)
                 .setOperatorId(operatorId).setStoreId(storeId).setExtendParams(extendParams)
-                .setTimeoutExpress(timeoutExpress).setGoodsDetailList(goodsDetails);
-        //.setNotifyUrl("http://www.test-notify-url.com")//支付宝服务器主动通知商户服务器里指定的页面http路径
+                .setTimeoutExpress(timeoutExpress).setGoodsDetailList(goodsDetails)
+                .setNotifyUrl("http://bxjzgy.natappfree.cc/order/" + "alipay_callback.do"); //支付宝服务器主动通知商户服务器里指定的页面http路径
         AlipayF2FPrecreateResult result = AlipayHelper.TRADE_SERVICE.tradePrecreate(builder);
         switch (result.getTradeStatus()) {
             case SUCCESS:
@@ -281,9 +282,28 @@ public class OrderServiceImpl implements IOrderService {
     }
 
     @Override
-    public ServerResponse alipayCallback(Map<String, String> params) {
-        // This needs to be implemented
-        return null;
+    public String alipayCallback(Map<String, String> params) {
+        // Check this request is from Alipay
+
+        String tradeStatus = params.get("trade_status");
+        if (tradeStatus != null && tradeStatus.equalsIgnoreCase("TRADE_SUCCESS")) {
+            Long tradeNo = Long.parseLong(params.get("out_trade_no"));
+            if (tradeNo != null) {
+                Order order = this.orderMapper.selectByOrderNo(tradeNo);
+                if (order != null) {
+                    BigDecimal totalPrice = order.getPayment();
+                    BigDecimal alipayTotal = new BigDecimal(params.get("total_amount"));
+                    if (totalPrice != alipayTotal) {
+                        return "fail";
+                    }
+                    // Update PayInfo
+                    // Update Order
+                    return "success";
+                }
+                return "fail";
+            }
+        }
+        return "fail";
     }
 
     @Override

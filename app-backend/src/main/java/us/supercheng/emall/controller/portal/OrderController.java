@@ -12,8 +12,10 @@ import us.supercheng.emall.pojo.User;
 import us.supercheng.emall.service.IOrderService;
 import us.supercheng.emall.service.IUserService;
 import us.supercheng.emall.vo.OrderCartVo;
+
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import java.util.Map;
+import java.util.*;
 
 @Controller
 @RequestMapping("/order/")
@@ -110,5 +112,24 @@ public class OrderController {
             return this.iOrderService.queryOrderPayStatus(orderNo, currentUser.getId());
         }
         return ServerResponse.createServerResponse(ResponseCode.LOGIN_REQUIRED.getCode(), ResponseCode.LOGIN_REQUIRED.getDesc());
+    }
+
+    @RequestMapping("alipay_callback.do")
+    @ResponseBody
+    public String alipayCallback(HttpServletRequest request) {
+        // Enumeration<String> paraNames = request.getHeaderNames();
+        Map<String, String> map = new HashMap<>();
+        Map requestParams = request.getParameterMap();
+        for (Iterator iter = requestParams.keySet().iterator(); iter.hasNext(); ) {
+            String name = (String) iter.next();
+            String[] values = (String[]) requestParams.get(name);
+            String valueStr = "";
+            for (int i = 0; i < values.length; i++) {
+                valueStr = (i == values.length - 1) ? valueStr + values[i] : valueStr + values[i] + ",";
+            }
+            map.put(name, valueStr);
+        }
+        this.iOrderService.alipayCallback(map);
+        return "success";
     }
 }
