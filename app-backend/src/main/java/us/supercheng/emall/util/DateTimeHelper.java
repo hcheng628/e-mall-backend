@@ -13,7 +13,14 @@ public class DateTimeHelper {
     public static String toAppDateTimeString(Date date) {
         return simpleDateFormat.format(date);
     }
-    public static Date toAppDateTime(String date) throws ParseException {
-        return simpleDateFormat.parse(date);
+    public static Date toAppDateTime(String date) {
+        Date d = null;
+        try {
+            d = simpleDateFormat.parse(date);
+        } catch (Exception ex) {
+            System.err.println("toAppDateTime String -> Date Fail");
+            ex.printStackTrace();
+        }
+        return d;
     }
 }

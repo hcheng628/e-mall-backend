@@ -5,7 +5,13 @@ import us.supercheng.emall.util.PropHelper;
 
 @Configuration
 public class Const {
+    public static final String APP_STORE_NAME = "E-mall QR";
+    public static final String APP_STORE_ID = "E-mall Online";
+    public static final String APP_STORE_OPERATOR_ID = "Online Operator";
+
+    public static final String APP_DOMAIN = "http://bxjzgy.natappfree.cc";
     public static final String APP_PROP_FILE = "emall.properties";
+    public static final String ALIPAY_PROP_FILE = "zfbinfo.properties";
     public static final String APP_DEFAULT_ENCODING = "UTF-8";
     public static final String APP_DATETIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
     public static final int APP_MONEY_SCALE = 2;
@@ -16,11 +22,10 @@ public class Const {
 
     public static final int ROLE_CUSTOMER = 0;
     public static final int ROLE_ADMIN = 1;
-
     public static final String APP_QR_PATH = "/upload/Images/QR/";
 
 
-    public static final boolean APP_USE_HTTP_PROXY_FLAG = true;
+    public static final boolean APP_USE_HTTP_PROXY_FLAG = false;
 
     // Auth
     public static String SALT_PASSWD_PREFIX;
@@ -50,12 +55,30 @@ public class Const {
         System.out.println("AppConfig Init Exit");
     }
 
-
-
-
-
     public interface PaymentSystem {
         int ALIPAY = 1;
+
+        interface AlipayConst{
+            String SELLER_ID = "";
+            String TRADE_STATUS = "trade_status";
+            String OUT_TRADE_NO = "out_trade_no";
+            String TOTAL_AMT = "total_amount";
+            String TRADE_NO = "trade_no";
+            String GMT_PAYMENT = "gmt_payment";
+            String ALIBABA_RSA2 = "RSA2";
+            String ALIBABA_PUBLIC_KEY = "alipay_public_key";
+
+            String ALIBABA_SYS_PROVIDER_ID = "2088100200300400500";
+            String ALIBABA_CALL_TIMEOUT = "120m";
+
+            String ALIBABA_CALLBACK_DOMAIN = APP_DOMAIN;
+            String ALIBABA_CALLBACK_URI = "/order/alipay_callback.do";
+
+            String ALIBABA_CALLBACK_SUCCESS = "success";
+            String ALIBABA_CALLBACK_FAIL = "fail";
+
+            String TRADE_SUCCESS = "TRADE_SUCCESS";
+        }
 
         enum OrderStatusEnum {
             CANCELED(0, "CANCELED"),
