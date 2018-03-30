@@ -1,5 +1,6 @@
 package us.supercheng.emall.service.impl;
 
+import com.alipay.api.internal.util.AlipaySignature;
 import com.alipay.api.response.AlipayTradePrecreateResponse;
 import com.alipay.demo.trade.model.ExtendParams;
 import com.alipay.demo.trade.model.GoodsDetail;
@@ -7,28 +8,17 @@ import com.alipay.demo.trade.model.builder.AlipayTradePrecreateRequestBuilder;
 import com.alipay.demo.trade.model.result.AlipayF2FPrecreateResult;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
-import net.sf.jsqlparser.schema.Server;
-import org.omg.CORBA.ORB;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import us.supercheng.emall.common.Const;
 import us.supercheng.emall.common.ServerResponse;
-import us.supercheng.emall.dao.CartMapper;
-import us.supercheng.emall.dao.OrderItemMapper;
-import us.supercheng.emall.dao.OrderMapper;
-import us.supercheng.emall.dao.ProductMapper;
-import us.supercheng.emall.pojo.Cart;
-import us.supercheng.emall.pojo.Order;
-import us.supercheng.emall.pojo.OrderItem;
-import us.supercheng.emall.pojo.Product;
+import us.supercheng.emall.dao.*;
+import us.supercheng.emall.pojo.*;
 import us.supercheng.emall.service.IOrderService;
-import us.supercheng.emall.util.AlipayHelper;
-import us.supercheng.emall.util.BigDecimalHelper;
-import us.supercheng.emall.util.QRImageHelper;
+import us.supercheng.emall.util.*;
 import us.supercheng.emall.vo.OrderCartVo;
 import us.supercheng.emall.vo.OrderItemVo;
 import us.supercheng.emall.vo.OrderVo;
-
 import java.math.BigDecimal;
 import java.util.*;
 
@@ -46,6 +36,9 @@ public class OrderServiceImpl implements IOrderService {
 
     @Autowired
     private OrderItemMapper orderItemMapper;
+
+    @Autowired
+    private PayInfoMapper payInfoMapper;
 
     public ServerResponse<OrderVo> create(Integer userId, Integer shippingId) {
         List<Cart> carts = this.cartMapper.selectCheckedCartsByUserId(userId);
@@ -236,25 +229,22 @@ public class OrderServiceImpl implements IOrderService {
         if (goodsDetails.size() == 0) {
             return ServerResponse.createServerResponseError("No Available or not Enough Product(s) Order Number: " + orderNo);
         }
-
         String outTradeNo = orderNo + "";
-        String subject = "xxxBrandxxxStore QR Pay";
+        String subject = Const.APP_STORE_NAME;
         String totalAmount = totalPay.toString();
-        // Optional if use Total Amt - Discount Amt will be Discount Amt
         String undiscountableAmount = "0";
-        // If Empty then this will be APPID'S PID
-        String sellerId = "";
-        String operatorId = "test_operator_id";
-        String storeId = "test_store_id";
+        String operatorId = Const.APP_STORE_OPERATOR_ID;
+        String storeId = Const.APP_STORE_ID;
         ExtendParams extendParams = new ExtendParams();
-        extendParams.setSysServiceProviderId("2088100200300400500");
-        String timeoutExpress = "120m";
+        extendParams.setSysServiceProviderId(Const.PaymentSystem.AlipayConst.ALIBABA_SYS_PROVIDER_ID);
+        String timeoutExpress = Const.PaymentSystem.AlipayConst.ALIBABA_CALL_TIMEOUT;
         AlipayTradePrecreateRequestBuilder builder = new AlipayTradePrecreateRequestBuilder()
                 .setSubject(subject).setTotalAmount(totalAmount).setOutTradeNo(outTradeNo)
-                .setUndiscountableAmount(undiscountableAmount).setSellerId(sellerId).setBody(body)
+                .setUndiscountableAmount(undiscountableAmount).setSellerId(Const.PaymentSystem.AlipayConst.SELLER_ID).setBody(body)
                 .setOperatorId(operatorId).setStoreId(storeId).setExtendParams(extendParams)
                 .setTimeoutExpress(timeoutExpress).setGoodsDetailList(goodsDetails)
-                .setNotifyUrl("http://bxjzgy.natappfree.cc/order/" + "alipay_callback.do"); //支付宝服务器主动通知商户服务器里指定的页面http路径
+                .setNotifyUrl(Const.PaymentSystem.AlipayConst.ALIBABA_CALLBACK_DOMAIN +
+                        Const.PaymentSystem.AlipayConst.ALIBABA_CALLBACK_URI); //支付宝服务器主动通知商户服务器里指定的页面http路径
         AlipayF2FPrecreateResult result = AlipayHelper.TRADE_SERVICE.tradePrecreate(builder);
         switch (result.getTradeStatus()) {
             case SUCCESS:
@@ -283,27 +273,84 @@ public class OrderServiceImpl implements IOrderService {
 
     @Override
     public String alipayCallback(Map<String, String> params) {
-        // Check this request is from Alipay
+        boolean senderVerifyFlag = false;
+        try {
+            senderVerifyFlag = AlipaySignature.rsaCheckV1(params,
+                    PropHelper.getValue(Const.ALIPAY_PROP_FILE, Const.PaymentSystem.AlipayConst.ALIBABA_PUBLIC_KEY),
+                    Const.APP_DEFAULT_ENCODING, Const.PaymentSystem.AlipayConst.ALIBABA_RSA2);
+        } catch (Exception ex) {
+            System.err.println("Alipay Signature RSA2 Check Fail");
+            ex.printStackTrace();
+        }
 
-        String tradeStatus = params.get("trade_status");
-        if (tradeStatus != null && tradeStatus.equalsIgnoreCase("TRADE_SUCCESS")) {
-            Long tradeNo = Long.parseLong(params.get("out_trade_no"));
-            if (tradeNo != null) {
-                Order order = this.orderMapper.selectByOrderNo(tradeNo);
-                if (order != null) {
-                    BigDecimal totalPrice = order.getPayment();
-                    BigDecimal alipayTotal = new BigDecimal(params.get("total_amount"));
-                    if (totalPrice != alipayTotal) {
-                        return "fail";
-                    }
-                    // Update PayInfo
-                    // Update Order
-                    return "success";
-                }
-                return "fail";
+        if (!senderVerifyFlag) {
+            System.err.println("Alipay Callback Sender Verification Fail");
+            return Const.PaymentSystem.AlipayConst.ALIBABA_CALLBACK_FAIL;
+        }
+        System.out.println("Alipay Callback Sender Verification Success");
+
+        Long tradeNo = Long.parseLong(params.get(Const.PaymentSystem.AlipayConst.OUT_TRADE_NO));
+        if (tradeNo == null) {
+            System.err.println("Trade Number: Null");
+            return Const.PaymentSystem.AlipayConst.ALIBABA_CALLBACK_FAIL;
+        }
+        System.out.println("Trade Number: " + tradeNo);
+
+        Order order = this.orderMapper.selectByOrderNo(tradeNo);
+        if (order == null) {
+            System.err.println("DB Order: Null");
+            return Const.PaymentSystem.AlipayConst.ALIBABA_CALLBACK_FAIL;
+        }
+        System.out.println("DB Order: " + order.getId());
+
+        if (order.getStatus() >= Const.PaymentSystem.OrderStatusEnum.PAID.getCode()) {
+            System.err.println("Order Already has been Paid");
+            return Const.PaymentSystem.AlipayConst.ALIBABA_CALLBACK_FAIL;
+        }
+        System.out.println("Order Waiting for Pay: " + order.getStatus());
+
+        BigDecimal totalPrice = order.getPayment();
+        BigDecimal alipayTotal = new BigDecimal(params.get(Const.PaymentSystem.AlipayConst.TOTAL_AMT));
+
+        if (BigDecimalHelper.sub(totalPrice.doubleValue(), alipayTotal.doubleValue()).intValue() != 0) {
+            System.err.println("User Payment: " + alipayTotal + " does not Equal to System Payment: " + totalPrice);
+            return Const.PaymentSystem.AlipayConst.ALIBABA_CALLBACK_FAIL;
+        }
+        System.out.println("User Payment does Equal to System Payment.");
+
+        String tradeStatus = params.get(Const.PaymentSystem.AlipayConst.TRADE_STATUS);
+
+
+        System.out.println("Trade Status: " + tradeStatus);
+        if(tradeStatus.equalsIgnoreCase(Const.PaymentSystem.AlipayConst.TRADE_SUCCESS)) {
+            System.out.println("Update Order: " + order.getOrderNo());
+            order.setStatus(Const.PaymentSystem.OrderStatusEnum.PAID.getCode());
+            System.out.println("set Order PaymentTime Str: " + params.get(Const.PaymentSystem.AlipayConst.GMT_PAYMENT));
+            System.out.println("set Order PaymentTime Date: " + DateTimeHelper.toAppDateTime(params.get(Const.PaymentSystem.AlipayConst.GMT_PAYMENT)));
+            order.setPaymentTime(DateTimeHelper.toAppDateTime(params.get(Const.PaymentSystem.AlipayConst.GMT_PAYMENT)));
+
+            int count = this.orderMapper.updateByPrimaryKeySelective(order);
+            System.out.println("Update Order: " + count);
+            if (count <= 0) {
+                System.err.println("Update Order OrderID: " + order.getId() + "to TRADE_SUCCESS Fail");
+                return Const.PaymentSystem.AlipayConst.ALIBABA_CALLBACK_FAIL;
             }
         }
-        return "fail";
+        PayInfo payInfo = new PayInfo();
+        payInfo.setUserId(order.getUserId());
+        payInfo.setOrderNo(order.getOrderNo());
+        payInfo.setPayPlatform(Const.PaymentSystem.ALIPAY);
+        payInfo.setPlatformNumber(params.get(Const.PaymentSystem.AlipayConst.TRADE_NO));
+        payInfo.setPlatformStatus(tradeStatus);
+        payInfo.setCreateTime(new Date());
+        payInfo.setUpdateTime(new Date());
+        int count = this.payInfoMapper.insertSelective(payInfo);
+        System.out.println("Insert PayInfo: " + count);
+        if (count <= 0) {
+            System.err.println("Insert PayInfo to Trade Status: " + tradeStatus + " Fail");
+            return Const.PaymentSystem.AlipayConst.ALIBABA_CALLBACK_FAIL;
+        }
+        return Const.PaymentSystem.AlipayConst.ALIBABA_CALLBACK_SUCCESS;
     }
 
     @Override
