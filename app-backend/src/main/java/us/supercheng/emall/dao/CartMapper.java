@@ -7,6 +7,7 @@ import java.util.List;
 
 public interface CartMapper {
     int deleteByPrimaryKey(Integer id);
+    int deleteBatch(@Param("ids") String ids);
     int insert(Cart record);
     int insertSelective(Cart record);
     Cart selectByPrimaryKey(Integer id);
