@@ -136,6 +136,11 @@
     where product_id in ( ${productIds} )
   </delete>
 
+  <delete id="deleteBatch" parameterType="java.lang.String">
+    delete from mmall_cart
+    where id in ( ${ids} )
+  </delete>
+
   <update id="selectCartProductsToggle" parameterType="map">
     update mmall_cart
     set checked = #{checkStatus}
@@ -159,5 +164,6 @@
     where checked = 1
     and user_id = #{userId}
   </select>
+
 
 </mapper>

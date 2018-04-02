@@ -40,8 +40,12 @@ public class OrderServiceImpl implements IOrderService {
     @Autowired
     private PayInfoMapper payInfoMapper;
 
+    @Autowired
+    private ShippingMapper shippingMapper;
+
     public ServerResponse<OrderVo> create(Integer userId, Integer shippingId) {
         List<Cart> carts = this.cartMapper.selectCheckedCartsByUserId(userId);
+        String ids = "";
         if (carts.size() == 0) {
             return ServerResponse.createServerResponseError("No Checked Item(s) Found in Cart");
         }
@@ -58,6 +62,10 @@ public class OrderServiceImpl implements IOrderService {
                     products.put(p.getId(), p);
                 }
             }
+            ids += cart.getId() + ",";
+        }
+        if(carts.size() > 1) {
+            ids = ids.substring(0, ids.length()-1);
         }
         if (alipayCarts.size() > 0) {
             String outTradeNo = System.currentTimeMillis() + (long) (Math.random() * 10000000L) + "";
@@ -90,13 +98,16 @@ public class OrderServiceImpl implements IOrderService {
                 return ServerResponse.createServerResponseError("Processing Order Item(s) Failed");
             }
             OrderVo orderVo = this.transformToCartVo(order, orderItems, shippingId);
+
+            if (this.cartMapper.deleteBatch(ids) == carts.size()) {
+                System.err.println("Could not Clear Cart after Placing Order");
+            }
             return ServerResponse.createServerResponseSuccess(orderVo);
         } else {
             return ServerResponse.createServerResponseError("No Items to Generate Order");
         }
     }
 
-    @Override
     public ServerResponse<Boolean> cancel(Long orderNo, Integer userId) {
         Order order = this.orderMapper.selectByOrderNoAndUserId(orderNo, userId);
         if (order == null) {
@@ -134,10 +145,9 @@ public class OrderServiceImpl implements IOrderService {
         }
         for (Order eachOrder : orders) {
             List<OrderItem> orderItems = this.orderItemMapper.selectByOrderNoAndUserId(eachOrder.getOrderNo(), userId);
-            OrderVo orderVo = this.transformToOrderVoFromOrderItems(orderItems, eachOrder);
+            OrderVo orderVo = this.transformToOrderVoFromOrderItems(orderItems, eachOrder, false);
             orderVos.add(orderVo);
         }
-
         pageInfo.setList(orderVos);
         return ServerResponse.createServerResponseSuccess(pageInfo);
     }
@@ -149,7 +159,7 @@ public class OrderServiceImpl implements IOrderService {
         List<OrderVo> orderVos = new ArrayList<>();
         for (Order order : orders) {
             List<OrderItem> orderItems = this.orderItemMapper.selectByOrderNo(order.getOrderNo());
-            OrderVo orderVo = this.transformToOrderVoFromOrderItems(orderItems, order);
+            OrderVo orderVo = this.transformToOrderVoFromOrderItems(orderItems, order, false);
             orderVos.add(orderVo);
         }
         pageInfo.setList(orderVos);
@@ -157,29 +167,43 @@ public class OrderServiceImpl implements IOrderService {
     }
 
     public ServerResponse<OrderVo> detail(Long orderNo, Integer userId) {
-        Order order = this.orderMapper.selectByOrderNoAndUserId(orderNo, userId);
-        if (order == null) {
-            return ServerResponse.createServerResponseError("Order Number: " + orderNo + " Not Found");
+        Order order;
+        List<OrderItem> orderItems;
+        if (userId != null) {
+            order = this.orderMapper.selectByOrderNoAndUserId(orderNo, userId);
+            if (order == null) {
+                return ServerResponse.createServerResponseError("Order Number: " + orderNo + " Not Found");
+            }
+            orderItems = this.orderItemMapper.selectByOrderNoAndUserId(orderNo, userId);
+        } else {
+            order = this.orderMapper.selectByOrderNo(orderNo);
+            if (order == null) {
+                return ServerResponse.createServerResponseError("Order Number: " + orderNo + " Not Found");
+            }
+            orderItems = this.orderItemMapper.selectByOrderNo(orderNo);
         }
-        List<OrderItem> orderItems = this.orderItemMapper.selectByOrderNoAndUserId(orderNo, userId);
-        OrderVo orderVo = this.transformToOrderVoFromOrderItems(orderItems, order);
+        OrderVo orderVo = this.transformToOrderVoFromOrderItems(orderItems, order, true);
         return ServerResponse.createServerResponseSuccess(orderVo);
     }
 
     public ServerResponse<OrderVo> detailAdmin(Long orderNo) {
-        Order order = this.orderMapper.selectByOrderNo(orderNo);
-        if (order == null) {
-            return ServerResponse.createServerResponseError("Order Number: " + orderNo + " Not Found");
-        }
-        List<OrderItem> orderItems = this.orderItemMapper.selectByOrderNo(orderNo);
-        OrderVo orderVo = this.transformToOrderVoFromOrderItems(orderItems, order);
-        return ServerResponse.createServerResponseSuccess(orderVo);
+        return this.detail(orderNo, null);
     }
 
-    @Override
-    public ServerResponse<OrderVo> searchAdmin(Long orderNo, Integer pageNum, Integer pageSize) {
-        // No clear requirement for this method
-        return null;
+    public ServerResponse<PageInfo> searchAdmin(Long orderNo, Integer pageNum, Integer pageSize) {
+        PageHelper.startPage(pageNum, pageSize);
+        Order order = this.orderMapper.selectByOrderNo(orderNo);
+        if (order == null) {
+            PageInfo pageInfo = new PageInfo();
+            return ServerResponse.createServerResponseSuccess(pageInfo);
+        }
+        // for now only has search by orderNo, when this returns a list this will not be a problem
+        List<OrderVo> orderVos = new ArrayList<>();
+        List<OrderItem> orderItems = this.orderItemMapper.selectByOrderNo(orderNo);
+        OrderVo orderVo = this.transformToOrderVoFromOrderItems(orderItems, order, false);
+        orderVos.add(orderVo);
+        PageInfo pageInfo = new PageInfo(orderVos);
+        return ServerResponse.createServerResponseSuccess(pageInfo);
     }
 
     public ServerResponse<String> shipGoods(Long orderNo) {
@@ -271,7 +295,6 @@ public class OrderServiceImpl implements IOrderService {
         }
     }
 
-    @Override
     public String alipayCallback(Map<String, String> params) {
         boolean senderVerifyFlag = false;
         try {
@@ -353,7 +376,6 @@ public class OrderServiceImpl implements IOrderService {
         return Const.PaymentSystem.AlipayConst.ALIBABA_CALLBACK_SUCCESS;
     }
 
-    @Override
     public ServerResponse queryOrderPayStatus(Long orderNo, Integer userId) {
         Order order = this.orderMapper.selectByOrderNoAndUserId(orderNo, userId);
         if (order == null) {
@@ -419,7 +441,7 @@ public class OrderServiceImpl implements IOrderService {
         return orderCartVo;
     }
 
-    private OrderVo transformToOrderVoFromOrderItems(List<OrderItem> orderItems, Order order) {
+    private OrderVo transformToOrderVoFromOrderItems(List<OrderItem> orderItems, Order order, boolean hasShipping) {
         OrderVo orderVo = new OrderVo();
         List<OrderItemVo> orderItemVos = new ArrayList<>();
         BigDecimal totalPrice = new BigDecimal("0.0");
@@ -451,6 +473,10 @@ public class OrderServiceImpl implements IOrderService {
             orderItemVos.add(orderItemVo);
         }
         orderVo.setOrderItemVos(orderItemVos);
+        if (hasShipping) {
+            Shipping shipping = this.shippingMapper.selectByPrimaryKey(order.getShippingId());
+            orderVo.setShipping(shipping);
+        }
         return orderVo;
     }
 }

@@ -1,5 +1,7 @@
 package us.supercheng.emall.vo;
 
+import us.supercheng.emall.pojo.Shipping;
+
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
@@ -17,6 +19,7 @@ public class OrderVo {
     private Date createTime;
     private List<OrderItemVo> orderItemVos;
     private Integer shippingId;
+    private Shipping shipping;
 
     public OrderVo() {
         super();
@@ -116,5 +119,13 @@ public class OrderVo {
 
     public void setShippingId(Integer shippingId) {
         this.shippingId = shippingId;
+    }
+
+    public Shipping getShipping() {
+        return shipping;
+    }
+
+    public void setShipping(Shipping shipping) {
+        this.shipping = shipping;
     }
 }

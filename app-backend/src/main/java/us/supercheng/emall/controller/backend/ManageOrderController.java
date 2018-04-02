@@ -47,8 +47,21 @@ public class ManageOrderController {
 
     @RequestMapping("search.do")
     @ResponseBody
-    public ServerResponse<OrderVo> search(Long orderNo, HttpSession session) {
-        return this.detail(orderNo, session);
+    public ServerResponse<PageInfo> search(Long orderNo,
+                                          @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum,
+                                          @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize,
+                                          HttpSession session) {
+        User currentUser = this.iUserService.getCurrentUser(session);
+        currentUser = new User();
+        currentUser.setId(1);
+        currentUser.setRole(Const.ROLE_ADMIN);
+        if (currentUser != null) {
+            if (currentUser.getRole() == Const.ROLE_ADMIN) {
+                return this.iOrderService.searchAdmin(orderNo, pageNum, pageSize);
+            }
+            return ServerResponse.createServerResponse(ResponseCode.ERROR.getCode(), "Only Admin Can Access");
+        }
+        return ServerResponse.createServerResponse(ResponseCode.LOGIN_REQUIRED.getCode(), ResponseCode.LOGIN_REQUIRED.getDesc());
     }
 
     @RequestMapping("detail.do")

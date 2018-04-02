@@ -19,6 +19,6 @@ public interface IOrderService {
 
     ServerResponse<PageInfo> listAdmin(Integer pageNum, Integer pageSize);
     ServerResponse<OrderVo> detailAdmin(Long orderNo);
-    ServerResponse<OrderVo> searchAdmin(Long orderNo, Integer pageNum, Integer pageSize);
+    ServerResponse<PageInfo> searchAdmin(Long orderNo, Integer pageNum, Integer pageSize);
     ServerResponse<String> shipGoods(Long orderNo);
 }
