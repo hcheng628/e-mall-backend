@@ -8,6 +8,8 @@ import com.alipay.demo.trade.model.builder.AlipayTradePrecreateRequestBuilder;
 import com.alipay.demo.trade.model.result.AlipayF2FPrecreateResult;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import us.supercheng.emall.common.Const;
@@ -24,6 +26,7 @@ import java.util.*;
 
 @Service("iOrderService")
 public class OrderServiceImpl implements IOrderService {
+    private static final Logger logger = LoggerFactory.getLogger(OrderServiceImpl.class);
 
     @Autowired
     private ProductMapper productMapper;
@@ -44,9 +47,11 @@ public class OrderServiceImpl implements IOrderService {
     private ShippingMapper shippingMapper;
 
     public ServerResponse<OrderVo> create(Integer userId, Integer shippingId) {
+        logger.info("Enter create userId: " + userId + " shippingId: " + shippingId);
         List<Cart> carts = this.cartMapper.selectCheckedCartsByUserId(userId);
         String ids = "";
         if (carts.size() == 0) {
+            logger.info("Exit create --- cart size: " + carts.size());
             return ServerResponse.createServerResponseError("No Checked Item(s) Found in Cart");
         }
         List<Cart> alipayCarts = new ArrayList<>();
@@ -95,6 +100,7 @@ public class OrderServiceImpl implements IOrderService {
             }
             int count = this.orderItemMapper.insertBatch(orderItems);
             if (count != orderItems.size()) {
+                logger.info("Exit create --- orderItems size: " + orderItems.size());
                 return ServerResponse.createServerResponseError("Processing Order Item(s) Failed");
             }
             OrderVo orderVo = this.transformToCartVo(order, orderItems, shippingId);
@@ -102,8 +108,10 @@ public class OrderServiceImpl implements IOrderService {
             if (this.cartMapper.deleteBatch(ids) == carts.size()) {
                 System.err.println("Could not Clear Cart after Placing Order");
             }
+            logger.info("Exit create");
             return ServerResponse.createServerResponseSuccess(orderVo);
         } else {
+            logger.info("Exit create --- No Items to Generate Order");
             return ServerResponse.createServerResponseError("No Items to Generate Order");
         }
     }
@@ -111,36 +119,46 @@ public class OrderServiceImpl implements IOrderService {
     public ServerResponse<Boolean> cancel(Long orderNo, Integer userId) {
         Order order = this.orderMapper.selectByOrderNoAndUserId(orderNo, userId);
         if (order == null) {
+            logger.info("Exit cancel Order Number: " + orderNo + " Not Found");
             return ServerResponse.createServerResponseError("Order Number: " + orderNo + " Not Found");
         }
         if (order.getStatus() != Const.PaymentSystem.OrderStatusEnum.UNPAID.getCode()) {
+            logger.info("Exit cancel --- Cannot Cancel Order at" +
+                    Const.PaymentSystem.OrderStatusEnum.codeOf(order.getStatus()).getVal() + " Stage.");
             return ServerResponse.createServerResponseError("Cannot Cancel Order at " +
                     Const.PaymentSystem.OrderStatusEnum.codeOf(order.getStatus()).getVal() + " Stage.");
         }
         order.setStatus(Const.PaymentSystem.OrderStatusEnum.CANCELED.getCode());
         int count = this.orderMapper.updateByPrimaryKeySelective(order);
         if (count > 0) {
+            logger.info("Exit cancel count: " + count);
             return ServerResponse.createServerResponseSuccess(true);
         }
+        logger.info("Exit cancel --- Fail to Cancel Order OrderID:" + orderNo);
         return ServerResponse.createServerResponseError("Fail to Cancel Order OrderID: " + orderNo);
     }
 
     public ServerResponse<OrderCartVo> getOrderCart(Integer userId) {
+        logger.info("Enter getOrderCart userId: " + userId);
         List<Cart> carts = this.cartMapper.selectCheckedCartsByUserId(userId);
         if (carts.size() == 0) {
+            logger.info("Exit getOrderCart carts size: " + carts.size());
             return ServerResponse.createServerResponseError("No Checked Item(s) Found in Cart");
         }
 
         OrderCartVo orderCartVo = this.transformToOrderCartVoFromCarts(carts);
+        logger.info("Exit getOrderCart");
         return ServerResponse.createServerResponseSuccess(orderCartVo);
     }
 
     public ServerResponse<PageInfo> list(Integer userId, Integer pageNum, Integer pageSize) {
+        logger.info("Enter list userId: " + userId + " pageNum: " + pageNum + " pageSize: " + pageSize);
         PageHelper.startPage(pageNum, pageSize);
         List<OrderVo> orderVos = new ArrayList<>();
         List<Order> orders = this.orderMapper.selectOrdersByUserId(userId);
         PageInfo pageInfo = new PageInfo(orders);
         if (orders.size() == 0) {
+            logger.info("Exit list orders size: " + orders.size());
             return ServerResponse.createServerResponseError("No Order Found for UserID: " + userId);
         }
         for (Order eachOrder : orders) {
@@ -149,10 +167,12 @@ public class OrderServiceImpl implements IOrderService {
             orderVos.add(orderVo);
         }
         pageInfo.setList(orderVos);
+        logger.info("Exit list");
         return ServerResponse.createServerResponseSuccess(pageInfo);
     }
 
     public ServerResponse<PageInfo> listAdmin(Integer pageNum, Integer pageSize) {
+        logger.info("Exit listAdmin pageNum: " + pageNum + " pageSize: " + pageSize);
         PageHelper.startPage(pageNum, pageSize);
         List<Order> orders = this.orderMapper.selectAllOrders();
         PageInfo pageInfo = new PageInfo(orders);
@@ -163,38 +183,47 @@ public class OrderServiceImpl implements IOrderService {
             orderVos.add(orderVo);
         }
         pageInfo.setList(orderVos);
+        logger.info("Exit listAdmin");
         return ServerResponse.createServerResponseSuccess(pageInfo);
     }
 
     public ServerResponse<OrderVo> detail(Long orderNo, Integer userId) {
+        logger.info("Exit detail orderNo: " + orderNo + " userId: " + userId);
         Order order;
         List<OrderItem> orderItems;
         if (userId != null) {
             order = this.orderMapper.selectByOrderNoAndUserId(orderNo, userId);
             if (order == null) {
+                logger.info("Exit detail detail is null ");
                 return ServerResponse.createServerResponseError("Order Number: " + orderNo + " Not Found");
             }
             orderItems = this.orderItemMapper.selectByOrderNoAndUserId(orderNo, userId);
         } else {
             order = this.orderMapper.selectByOrderNo(orderNo);
             if (order == null) {
+                logger.info("Exit detail detail is null ");
                 return ServerResponse.createServerResponseError("Order Number: " + orderNo + " Not Found");
             }
             orderItems = this.orderItemMapper.selectByOrderNo(orderNo);
         }
         OrderVo orderVo = this.transformToOrderVoFromOrderItems(orderItems, order, true);
+        logger.info("Exit detail");
         return ServerResponse.createServerResponseSuccess(orderVo);
     }
 
     public ServerResponse<OrderVo> detailAdmin(Long orderNo) {
+        logger.info("Enter detailAdmin orderNo: " + orderNo);
+        logger.info("Exit detailAdmin");
         return this.detail(orderNo, null);
     }
 
     public ServerResponse<PageInfo> searchAdmin(Long orderNo, Integer pageNum, Integer pageSize) {
+        logger.info("Enter searchAdmin orderNo: " + orderNo + " pageNum: " + pageNum + " pageSize: " + pageSize);
         PageHelper.startPage(pageNum, pageSize);
         Order order = this.orderMapper.selectByOrderNo(orderNo);
         if (order == null) {
             PageInfo pageInfo = new PageInfo();
+            logger.info("Exit searchAdmin order is null");
             return ServerResponse.createServerResponseSuccess(pageInfo);
         }
         // for now only has search by orderNo, when this returns a list this will not be a problem
@@ -203,35 +232,45 @@ public class OrderServiceImpl implements IOrderService {
         OrderVo orderVo = this.transformToOrderVoFromOrderItems(orderItems, order, false);
         orderVos.add(orderVo);
         PageInfo pageInfo = new PageInfo(orderVos);
+        logger.info("Exit searchAdmin order is null");
         return ServerResponse.createServerResponseSuccess(pageInfo);
     }
 
     public ServerResponse<String> shipGoods(Long orderNo) {
+        logger.info("Enter shipGoods orderNo: " + orderNo);
         Order order = this.orderMapper.selectByOrderNo(orderNo);
         if (order == null) {
+            logger.info("Exit shipGoods order is null");
             return ServerResponse.createServerResponseError("No Such Order OrderID: " + orderNo);
         }
         if (order.getStatus() == Const.PaymentSystem.OrderStatusEnum.PAID.getCode()) {
             order.setStatus(Const.PaymentSystem.OrderStatusEnum.SHIPPED.getCode());
             int count = this.orderMapper.updateByPrimaryKeySelective(order);
             if (count > 0) {
+                logger.info("Exit shipGoods count: " + count);
                 return ServerResponse.createServerResponseSuccess("Order Shipment Success");
             } else {
+                logger.info("Exit shipGoods count: " + count);
                 return ServerResponse.createServerResponseError("Order Shipment Fail");
             }
         } else {
+            logger.info("Exit shipGoods Payment for OrderID: " + orderNo + " "
+                    + Const.PaymentSystem.OrderStatusEnum.UNPAID.getVal());
             return ServerResponse.createServerResponseError("Payment for OrderID: " + orderNo + " "
                     + Const.PaymentSystem.OrderStatusEnum.UNPAID.getVal());
         }
     }
 
     public ServerResponse<Map> pay(Long orderNo, Integer userId) {
+        logger.info("Enter pay orderNo: " + orderNo + " userId: " + userId);
         Order dbOrder = this.orderMapper.selectByOrderNoAndUserId(orderNo, userId);
         if (dbOrder == null) {
+            logger.info("Exit pay dbOrder is null");
             return ServerResponse.createServerResponseError("Order Number: " + orderNo + " Not Found");
         }
         List<OrderItem> dbOrderItems = this.orderItemMapper.selectByOrderNoAndUserId(dbOrder.getOrderNo(), userId);
         if (dbOrderItems.size() == 0) {
+            logger.info("Exit pay dbOrderItems size: " + dbOrderItems.size());
             return ServerResponse.createServerResponseError("No Order Item(s) in Order Number: " + orderNo);
         }
         List<GoodsDetail> goodsDetails = new ArrayList<>();
@@ -251,6 +290,7 @@ public class OrderServiceImpl implements IOrderService {
             }
         }
         if (goodsDetails.size() == 0) {
+            logger.info("Exit pay goodsDetails size: " + goodsDetails.size());
             return ServerResponse.createServerResponseError("No Available or not Enough Product(s) Order Number: " + orderNo);
         }
         String outTradeNo = orderNo + "";
@@ -282,80 +322,72 @@ public class OrderServiceImpl implements IOrderService {
                 Map returnMap = new HashMap<>();
                 returnMap.put("orderNo", response.getOutTradeNo());
                 returnMap.put("qrBase64", qrBase64Str);
+                logger.info("Exit pay");
                 return ServerResponse.createServerResponseSuccess(returnMap);
             case FAILED:
-                //log.error("支付宝预下单失败!!!");
+                logger.error("Exit pay --- Alipay Placing Order Fail");
                 return ServerResponse.createServerResponseError("Place Alipay Pre-Order Failed");
             case UNKNOWN:
-                //log.error("系统异常，预下单状态未知!!!");
+                logger.error("Exit pay --- Alipay Order Unknown Status");
                 return ServerResponse.createServerResponseError("Alipay System Error");
             default:
-                //log.error("不支持的交易状态，交易返回异常!!!");
+                logger.error("Exit pay --- Alipay Unknown System Error");
                 return ServerResponse.createServerResponseError("Unknown Alipay System Error");
         }
     }
 
     public String alipayCallback(Map<String, String> params) {
+        logger.info("Enter alipayCallback");
         boolean senderVerifyFlag = false;
         try {
             senderVerifyFlag = AlipaySignature.rsaCheckV1(params,
                     PropHelper.getValue(Const.ALIPAY_PROP_FILE, Const.PaymentSystem.AlipayConst.ALIBABA_PUBLIC_KEY),
                     Const.APP_DEFAULT_ENCODING, Const.PaymentSystem.AlipayConst.ALIBABA_RSA2);
         } catch (Exception ex) {
-            System.err.println("Alipay Signature RSA2 Check Fail");
-            ex.printStackTrace();
+            logger.error("Alipay Signature RSA2 Check Fail");
         }
-
         if (!senderVerifyFlag) {
-            System.err.println("Alipay Callback Sender Verification Fail");
+            logger.error("Exit alipayCallback senderVerifyFlag: " + senderVerifyFlag);
             return Const.PaymentSystem.AlipayConst.ALIBABA_CALLBACK_FAIL;
         }
-        System.out.println("Alipay Callback Sender Verification Success");
-
+        logger.info("Alipay Callback --- Sender Verification Success");
         Long tradeNo = Long.parseLong(params.get(Const.PaymentSystem.AlipayConst.OUT_TRADE_NO));
         if (tradeNo == null) {
-            System.err.println("Trade Number: Null");
+            logger.info("Exit alipayCallback --- tradeNo is null");
             return Const.PaymentSystem.AlipayConst.ALIBABA_CALLBACK_FAIL;
         }
-        System.out.println("Trade Number: " + tradeNo);
-
+        logger.info("Trade Number: " + tradeNo);
         Order order = this.orderMapper.selectByOrderNo(tradeNo);
         if (order == null) {
-            System.err.println("DB Order: Null");
+            logger.error("Exit alipayCallback --- DB Order: Null");
             return Const.PaymentSystem.AlipayConst.ALIBABA_CALLBACK_FAIL;
         }
-        System.out.println("DB Order: " + order.getId());
-
+        logger.info("DB Order: " + order.getId());
         if (order.getStatus() >= Const.PaymentSystem.OrderStatusEnum.PAID.getCode()) {
-            System.err.println("Order Already has been Paid");
+            logger.error("Exit alipayCallback --- Order Already has been Paid");
             return Const.PaymentSystem.AlipayConst.ALIBABA_CALLBACK_FAIL;
         }
-        System.out.println("Order Waiting for Pay: " + order.getStatus());
-
+        logger.info("Order Waiting for Pay: " + order.getStatus());
         BigDecimal totalPrice = order.getPayment();
         BigDecimal alipayTotal = new BigDecimal(params.get(Const.PaymentSystem.AlipayConst.TOTAL_AMT));
-
         if (BigDecimalHelper.sub(totalPrice.doubleValue(), alipayTotal.doubleValue()).intValue() != 0) {
-            System.err.println("User Payment: " + alipayTotal + " does not Equal to System Payment: " + totalPrice);
+            logger.info("Exit alipayCallback User Payment: " + alipayTotal + " does not Equal to System Payment: " + totalPrice);
             return Const.PaymentSystem.AlipayConst.ALIBABA_CALLBACK_FAIL;
         }
-        System.out.println("User Payment does Equal to System Payment.");
-
+        logger.info("User Payment does Equal to System Payment.");
         String tradeStatus = params.get(Const.PaymentSystem.AlipayConst.TRADE_STATUS);
-
-
-        System.out.println("Trade Status: " + tradeStatus);
+        logger.info("Trade Status: " + tradeStatus);
         if(tradeStatus.equalsIgnoreCase(Const.PaymentSystem.AlipayConst.TRADE_SUCCESS)) {
-            System.out.println("Update Order: " + order.getOrderNo());
+            logger.info("Update Order: " + order.getOrderNo());
             order.setStatus(Const.PaymentSystem.OrderStatusEnum.PAID.getCode());
-            System.out.println("set Order PaymentTime Str: " + params.get(Const.PaymentSystem.AlipayConst.GMT_PAYMENT));
-            System.out.println("set Order PaymentTime Date: " + DateTimeHelper.toAppDateTime(params.get(Const.PaymentSystem.AlipayConst.GMT_PAYMENT)));
+            logger.info("set Order PaymentTime Str: " + params.get(Const.PaymentSystem.AlipayConst.GMT_PAYMENT));
+            logger.info("set Order PaymentTime Date: " + DateTimeHelper.toAppDateTime(params.get(Const.PaymentSystem.AlipayConst.GMT_PAYMENT)));
             order.setPaymentTime(DateTimeHelper.toAppDateTime(params.get(Const.PaymentSystem.AlipayConst.GMT_PAYMENT)));
-
             int count = this.orderMapper.updateByPrimaryKeySelective(order);
-            System.out.println("Update Order: " + count);
+            logger.info("Update Order: " + count);
             if (count <= 0) {
                 System.err.println("Update Order OrderID: " + order.getId() + "to TRADE_SUCCESS Fail");
+                logger.info("Exit alipayCallback count: " + count);
                 return Const.PaymentSystem.AlipayConst.ALIBABA_CALLBACK_FAIL;
             }
         }
@@ -368,26 +400,33 @@ public class OrderServiceImpl implements IOrderService {
         payInfo.setCreateTime(new Date());
         payInfo.setUpdateTime(new Date());
         int count = this.payInfoMapper.insertSelective(payInfo);
-        System.out.println("Insert PayInfo: " + count);
+        logger.info("Insert PayInfo: " + count);
         if (count <= 0) {
             System.err.println("Insert PayInfo to Trade Status: " + tradeStatus + " Fail");
+            logger.info("Exit alipayCallback count: " + count);
             return Const.PaymentSystem.AlipayConst.ALIBABA_CALLBACK_FAIL;
         }
+        logger.info("Exit alipayCallback count: " + count);
         return Const.PaymentSystem.AlipayConst.ALIBABA_CALLBACK_SUCCESS;
     }
 
     public ServerResponse queryOrderPayStatus(Long orderNo, Integer userId) {
+        logger.info("Exit queryOrderPayStatus orderNo: " + orderNo + " userId: " + userId);
         Order order = this.orderMapper.selectByOrderNoAndUserId(orderNo, userId);
         if (order == null) {
+            logger.info("Exit queryOrderPayStatus order is null");
             return ServerResponse.createServerResponseError("Order Number: " + orderNo + " Not Found");
         }
         if (order.getStatus() >= Const.PaymentSystem.OrderStatusEnum.PAID.getCode()) {
+            logger.info("Exit queryOrderPayStatus Order Status is greater or equal to PAID status");
             return ServerResponse.createServerResponseSuccess("true");
         }
+        logger.info("Exit queryOrderPayStatus");
         return ServerResponse.createServerResponseError("false");
     }
 
     private OrderVo transformToCartVo(Order order, List<OrderItem> orderItems, Integer shippingId) {
+        logger.info("Enter transformToCartVo orderId: " + order.getId() + " orderItems size: " + orderItems.size() + " shippingId: " + shippingId);
         OrderVo orderVo = new OrderVo();
         orderVo.setOrderNo(order.getOrderNo());
         orderVo.setPayment(order.getPayment());
@@ -413,10 +452,12 @@ public class OrderServiceImpl implements IOrderService {
             orderVo.getOrderItemVos().add(orderItemVo);
         }
         orderVo.setShippingId(shippingId);
+        logger.info("Exit transformToCartVo");
         return orderVo;
     }
 
     private OrderCartVo transformToOrderCartVoFromCarts(List<Cart> carts) {
+        logger.info("Enter transformToOrderCartVoFromCarts cart size: " + carts.size());
         OrderCartVo orderCartVo = new OrderCartVo();
         BigDecimal totalPrice = new BigDecimal("0.0");
         List<OrderItemVo> orderItemVos = new ArrayList<>();
@@ -437,15 +478,16 @@ public class OrderServiceImpl implements IOrderService {
         orderCartVo.setOrderItemVoList(orderItemVos);
         orderCartVo.setImageHost("xxx");
         orderCartVo.setProductTotalPrice(totalPrice);
-
+        logger.info("Exit transformToOrderCartVoFromCarts");
         return orderCartVo;
     }
 
     private OrderVo transformToOrderVoFromOrderItems(List<OrderItem> orderItems, Order order, boolean hasShipping) {
+        logger.info("Enter transformToOrderVoFromOrderItems orderItems size: " + orderItems.size() + " orderId: "
+                + order.getId() + " hasShipping: " + hasShipping);
         OrderVo orderVo = new OrderVo();
         List<OrderItemVo> orderItemVos = new ArrayList<>();
         BigDecimal totalPrice = new BigDecimal("0.0");
-
         orderVo.setOrderNo(order.getOrderNo());
         orderVo.setPayment(order.getPayment());
         orderVo.setPaymentType(order.getPaymentType());
@@ -477,6 +519,7 @@ public class OrderServiceImpl implements IOrderService {
             Shipping shipping = this.shippingMapper.selectByPrimaryKey(order.getShippingId());
             orderVo.setShipping(shipping);
         }
+        logger.info("Exit transformToOrderVoFromOrderItems");
         return orderVo;
     }
 }

@@ -88,6 +88,7 @@ public class CartServiceImpl implements ICartService {
             logger.info("P is null");
             returnMap.put("count", "0");
         }
+        logger.info("Exit upsert");
         return returnMap;
     }
 
@@ -97,6 +98,7 @@ public class CartServiceImpl implements ICartService {
         if (productIds != null) {
             productIds = productIds.replaceAll("[^0-9,]", "");
         }
+        logger.info("Exit delete");
         return this.cartMapper.deleteCartsByProductIds(productIds);
     }
 
@@ -105,8 +107,10 @@ public class CartServiceImpl implements ICartService {
         logger.info("Enter select productId: " + productId + " userId: " + userId);
         Cart existCart = this.cartMapper.selectByProductIdAndUserId(productId, userId);
         if (existCart == null) {
+            logger.info("Exit select");
             return -1;
         } else {
+            logger.info("Exit select");
             return this.cartMapper.selectCartProductsToggle(userId, productId, Const.CartConst.PRODUCT_CHECKED);
         }
     }
@@ -115,6 +119,7 @@ public class CartServiceImpl implements ICartService {
     public void selectAll(Integer userId) {
         logger.info("Enter selectAll userId: " + userId);
         this.cartMapper.selectCartProductsToggle(userId, null, Const.CartConst.PRODUCT_CHECKED);
+        logger.info("Exit selectAll");
     }
 
     @Override
@@ -123,9 +128,12 @@ public class CartServiceImpl implements ICartService {
         Cart existCart = this.cartMapper.selectByProductIdAndUserId(productId, userId);
         if (existCart == null) {
             logger.info("existCart is null");
+            logger.info("Exit unselect");
+
             return -1;
         } else {
             logger.info("existCart is not null");
+            logger.info("Exit unselect");
             return this.cartMapper.selectCartProductsToggle(userId, productId, Const.CartConst.PRODUCT_UNCHECKED);
         }
     }
@@ -133,12 +141,14 @@ public class CartServiceImpl implements ICartService {
     @Override
     public void unselectAll(Integer userId) {
         logger.info("Enter unselectAll userId: " + userId);
+        logger.info("Exit unselectAll");
         this.cartMapper.selectCartProductsToggle(userId, null, Const.CartConst.PRODUCT_UNCHECKED);
     }
 
     @Override
     public int getCartTotalItems(Integer userId) {
         logger.info("Enter getCartTotalItems userId: " + userId);
+        logger.info("Exit getCartTotalItems");
         return this.cartMapper.getCartTotalItems(userId);
     }
 
