@@ -2,6 +2,8 @@ package us.supercheng.emall.util;
 
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import us.supercheng.emall.common.Const;
 import java.io.File;
 import java.io.FileInputStream;
@@ -10,6 +12,7 @@ import java.io.InputStream;
 import java.util.UUID;
 
 public class FTPHelper {
+    private static final Logger logger = LoggerFactory.getLogger(FTPHelper.class);
 
     private FTPClient ftpClient;
 
@@ -23,32 +26,34 @@ public class FTPHelper {
 
     private boolean doConnect(FTPClient ftpClient) {
         try {
+            logger.debug("doConnect FTP IP: " + Const.FTP_IP + " Port: " + Const.FTP_PORT);
             ftpClient.connect(Const.FTP_IP, Const.FTP_PORT);
             return true;
         } catch (IOException ex) {
-            ex.printStackTrace();
+            logger.error("doConnect\r\n" + ex);
             return false;
         }
     }
 
     private boolean doLogin(FTPClient ftpClient) {
         try {
+            logger.debug("doConnect FTP USER: " + Const.FTP_USER + " PASS: " + Const.FTP_PASS);
             ftpClient.login(Const.FTP_USER, Const.FTP_PASS);
             return true;
         }catch (IOException ex) {
-            ex.printStackTrace();
+            logger.error("doLogin\r\n" + ex);
             return false;
         }
     }
 
     public static String doUpload(String remoteDir, File file) {
-        //System.out.println("Init " + );
+        logger.debug("Enter doUpload RemoteDir: " + remoteDir + " File: " + file.getName());
         FTPHelper ftpHelper = new FTPHelper();
         String fileName = null;
         if (ftpHelper.doConnect(ftpHelper.getFtpClient())) {
             if (ftpHelper.doLogin(ftpHelper.getFtpClient())) {
                 String extension = file.getName().substring(file.getName().lastIndexOf(".") + 1);
-                System.out.println("Extension: " + extension);
+                logger.info("Extension: " + extension);
                 ftpHelper.getFtpClient().enterLocalPassiveMode();
                 InputStream inputStream = null;
                 try {
@@ -58,10 +63,10 @@ public class FTPHelper {
                     ftpHelper.getFtpClient().changeWorkingDirectory(remoteDir);
                     inputStream = new FileInputStream(file);
                     fileName = UUID.randomUUID().toString() + "." + extension;
-                    System.out.println("Filename: " + fileName);
+                    logger.info("Filename: " + fileName);
                     ftpHelper.getFtpClient().storeFile(fileName, inputStream);
                 } catch (IOException ex) {
-                    ex.printStackTrace();
+                    logger.error("doUpload\r\n" + ex);
                     return null;
                 }finally {
                    try {
@@ -71,7 +76,7 @@ public class FTPHelper {
                             ftpHelper.getFtpClient().disconnect();
                        }
                    } catch (IOException e) {
-                       e.printStackTrace();
+                       logger.error("doUpload Closing\r\n" + e);
                    }
                 }
             }

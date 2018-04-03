@@ -8,11 +8,14 @@ import com.alipay.demo.trade.service.impl.AlipayMonitorServiceImpl;
 import com.alipay.demo.trade.service.impl.AlipayTradeServiceImpl;
 import com.alipay.demo.trade.service.impl.AlipayTradeWithHBServiceImpl;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Configuration;
 import us.supercheng.emall.common.Const;
 
 @Configuration
 public class AlipayHelper {
+    private static final Logger logger = LoggerFactory.getLogger(AlipayHelper.class);
 
     // 支付宝当面付2.0服务
     public static AlipayTradeService TRADE_SERVICE;
@@ -46,19 +49,19 @@ public class AlipayHelper {
 
         /** 如果需要在程序中覆盖Configs提供的默认参数, 可以使用ClientBuilder类的setXXX方法修改默认参数 否则使用代码中的默认设置 */
         MONITOR_SERVICE = new AlipayMonitorServiceImpl.ClientBuilder()
-                .setGatewayUrl("http://mcloudmonitor.com/gateway.do").setCharset("GBK")
+                .setGatewayUrl("http://mcloudmonitor.com/gateway.do")
+                .setCharset("GBK")
                 .setFormat("json").build();
     }
 
-    // 简单打印应答
     public static void dumpResponse(AlipayResponse response) {
         if (response != null) {
-            System.out.println(String.format("code:%s, msg:%s", response.getCode(), response.getMsg()));
+            logger.debug(String.format("code:%s, msg:%s", response.getCode(), response.getMsg()));
             if (StringUtils.isNotEmpty(response.getSubCode())) {
-                System.out.println(String.format("subCode:%s, subMsg:%s", response.getSubCode(),
+                logger.debug(String.format("subCode:%s, subMsg:%s", response.getSubCode(),
                         response.getSubMsg()));
             }
-            System.out.println("body:" + response.getBody());
+            logger.debug("body:" + response.getBody());
         }
     }
 

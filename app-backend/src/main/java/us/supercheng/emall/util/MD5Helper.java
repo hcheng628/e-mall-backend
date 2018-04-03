@@ -1,8 +1,11 @@
 package us.supercheng.emall.util;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.security.MessageDigest;
 
 public class MD5Helper {
+    private static final Logger logger = LoggerFactory.getLogger(MD5Helper.class);
 
     private static final String hexDigits[] = {"0", "1", "2", "3", "4", "5",
             "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"};
@@ -11,6 +14,7 @@ public class MD5Helper {
         StringBuffer resultSb = new StringBuffer();
         for (int i = 0; i < b.length; i++)
             resultSb.append(byteToHexString(b[i]));
+        logger.debug("byteArrayToHexString: " + resultSb.toString());
         return resultSb.toString();
     }
 
@@ -32,8 +36,10 @@ public class MD5Helper {
                 resultString = byteArrayToHexString(md.digest(resultString.getBytes()));
             else
                 resultString = byteArrayToHexString(md.digest(resultString.getBytes(charsetname)));
-        } catch (Exception exception) {
+        } catch (Exception ex) {
+            logger.error("MD5Encode\r\n" + ex);
         }
+        logger.debug("MD5Encode\r\n" + resultString.toUpperCase());
         return resultString.toUpperCase();
     }
 }

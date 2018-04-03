@@ -6,12 +6,16 @@ import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 import org.apache.commons.codec.binary.Base64;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 public class QRImageHelper {
+    private static final Logger logger = LoggerFactory.getLogger(QRImageHelper.class);
 
     public static String getQRCodeImage256(String text) {
+        logger.debug("Enter getQRCodeImage256 text: " + text);
         try {
             QRCodeWriter qrCodeWriter = new QRCodeWriter();
             BitMatrix bitMatrix = qrCodeWriter.encode(text, BarcodeFormat.QR_CODE, 256, 256);
@@ -20,6 +24,7 @@ public class QRImageHelper {
             byte[] pngData = pngOutputStream.toByteArray();
             return Base64.encodeBase64String(pngData);
         } catch (Exception ex) {
+            logger.error("getQRCodeImage256\r\n" + ex);
             return null;
         }
     }

@@ -1,5 +1,7 @@
 package us.supercheng.emall.service.impl;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import us.supercheng.emall.common.Const;
@@ -16,6 +18,7 @@ import java.util.*;
 
 @Service("iCartService")
 public class CartServiceImpl implements ICartService {
+    private static final Logger logger = LoggerFactory.getLogger(CartServiceImpl.class);
 
     @Autowired
     private CartMapper cartMapper;
@@ -24,6 +27,7 @@ public class CartServiceImpl implements ICartService {
     private ProductMapper productMapper;
 
     public CartProductVo list(Integer userId) {
+        logger.info("Enter list userId: " + userId);
         List<Cart> carts = this.cartMapper.selectCartsByUserId(userId);
         List<CartVo> cartVos = new ArrayList<>();
         for (Cart c : carts) {
@@ -41,15 +45,18 @@ public class CartServiceImpl implements ICartService {
             }
         }
         cartProductVo.setCartTotalPrice(totalPrice);
+        logger.info("Exit list");
         return cartProductVo;
     }
 
     @Override
     public Map upsert(Integer productId, Integer count, Integer userId) {
+        logger.info("Enter upsert productId: " + productId + " count: " + count + " userId: " + userId);
         Cart cart = new Cart();
         Map<String, String> returnMap = new HashMap<>();
         Product p = this.productMapper.selectByPrimaryKey(productId);
         if (p != null) {
+            logger.info("P is not null");
             cart.setChecked(1);
             cart.setUserId(userId);
             cart.setProductId(p.getId());
@@ -78,6 +85,7 @@ public class CartServiceImpl implements ICartService {
                 returnMap.put("countDb", "0");
             }
         } else {
+            logger.info("P is null");
             returnMap.put("count", "0");
         }
         return returnMap;
@@ -85,6 +93,7 @@ public class CartServiceImpl implements ICartService {
 
     @Override
     public int delete(String productIds) {
+        logger.info("Enter delete productIds: " + productIds);
         if (productIds != null) {
             productIds = productIds.replaceAll("[^0-9,]", "");
         }
@@ -93,6 +102,7 @@ public class CartServiceImpl implements ICartService {
 
     @Override
     public int select(Integer productId, Integer userId) {
+        logger.info("Enter select productId: " + productId + " userId: " + userId);
         Cart existCart = this.cartMapper.selectByProductIdAndUserId(productId, userId);
         if (existCart == null) {
             return -1;
@@ -103,31 +113,37 @@ public class CartServiceImpl implements ICartService {
 
     @Override
     public void selectAll(Integer userId) {
+        logger.info("Enter selectAll userId: " + userId);
         this.cartMapper.selectCartProductsToggle(userId, null, Const.CartConst.PRODUCT_CHECKED);
     }
 
     @Override
     public int unselect(Integer productId, Integer userId) {
+        logger.info("Enter unselect productId: " + productId + " userId: " + userId);
         Cart existCart = this.cartMapper.selectByProductIdAndUserId(productId, userId);
         if (existCart == null) {
+            logger.info("existCart is null");
             return -1;
         } else {
+            logger.info("existCart is not null");
             return this.cartMapper.selectCartProductsToggle(userId, productId, Const.CartConst.PRODUCT_UNCHECKED);
         }
     }
 
     @Override
     public void unselectAll(Integer userId) {
+        logger.info("Enter unselectAll userId: " + userId);
         this.cartMapper.selectCartProductsToggle(userId, null, Const.CartConst.PRODUCT_UNCHECKED);
     }
 
     @Override
     public int getCartTotalItems(Integer userId) {
+        logger.info("Enter getCartTotalItems userId: " + userId);
         return this.cartMapper.getCartTotalItems(userId);
     }
 
     private CartVo cartToCartVo(Cart cart) {
-        System.out.println("Cart Quantity: " + cart.getQuantity());
+        logger.info("Enter cartToCartVo Cart Quantity: " + cart.getQuantity());
         CartVo cartVo = new CartVo();
         cartVo.setId(cart.getId());
         cartVo.setUserId(cart.getUserId());
@@ -150,6 +166,7 @@ public class CartServiceImpl implements ICartService {
             }
         }
         cartVo.setProductTotalPrice(BigDecimalHelper.mul(cartVo.getProductPrice().doubleValue(), cartVo.getQuantity()));
+        logger.info("Exit cartToCartVo");
         return cartVo;
     }
 }

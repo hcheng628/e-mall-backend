@@ -1,10 +1,14 @@
 package us.supercheng.emall.common;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Configuration;
 import us.supercheng.emall.util.PropHelper;
 
 @Configuration
 public class Const {
+    private static final Logger logger = LoggerFactory.getLogger(Const.class);
+
     public static final String APP_STORE_NAME = "E-mall QR";
     public static final String APP_STORE_ID = "E-mall Online";
     public static final String APP_STORE_OPERATOR_ID = "Online Operator";
@@ -39,7 +43,8 @@ public class Const {
     public static String FTP_HTTP_PREFIX;
 
     static {
-        System.out.println("AppConfig Init Enter");
+        logger.info("AppConfig Init Enter");
+
         FTP_IP = PropHelper.getValue("ftp.server.ip");
         FTP_PORT = Integer.parseInt(PropHelper.getValue("ftp.server.port"));
         FTP_USER = PropHelper.getValue("ftp.server.user");
@@ -49,10 +54,10 @@ public class Const {
         SALT_PASSWD_PREFIX = PropHelper.getValue("app.passwd.salt.prefix");
         SALT_PASSWD_SUFFIX = PropHelper.getValue("app.passwd.salt.suffix");
 
-        System.out.println("FTP Info: \r\nFTP_IP: " + FTP_IP + " FTP_PORT: "+ FTP_PORT +
+        logger.info("FTP Info: \r\nFTP_IP: " + FTP_IP + " FTP_PORT: "+ FTP_PORT +
                 "\r\nFTP_USER: " + FTP_USER + " FTP_PASS: " + FTP_PASS + "\r\nFTP_HTTP_PREFIX: " + FTP_HTTP_PREFIX +
-                "\r\nPASSWD Salt Info: \r\nSALT_PASSWD_PREFIX: " + SALT_PASSWD_PREFIX + " SALT_PASSWD_SUFFIX: " + SALT_PASSWD_SUFFIX);
-        System.out.println("AppConfig Init Exit");
+                "\r\nPASSWD Salt Info: \r\nSALT_PASSWD_PREFIX: " + SALT_PASSWD_PREFIX + " SALT_PASSWD_SUFFIX: " + SALT_PASSWD_SUFFIX +
+                "\r\nAppConfig Init Exit");
     }
 
     public interface PaymentSystem {
@@ -110,6 +115,7 @@ public class Const {
                         return orderStatusEnum;
                     }
                 }
+                logger.error("No OrderStatusEnum Found");
                 throw new RuntimeException("No OrderStatusEnum Found");
             }
         }
